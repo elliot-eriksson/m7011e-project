@@ -1,0 +1,27 @@
+### TODO
+### 1. Transaktioner
+- plus och minus transaktioner
+-
+### 2. Budget --> flera personer (min 1) many to many relation
+
+### 2.b roller : owner, admin, viewer, memeber/user
+    owner --> alla
+    admin --> memeber/userm, viewer
+
+### 3. User pages 
+    show all budgets users have permission for
+
+### 4. Email service / Notifications service barebone
+
+
+### 5. Authentication / session management (JWT)
+
+
+### 6. Summary and graphs
+
+
+### Feature 
+    Exceses money goes to piggybank --> time to acheived sum
+
+### IF TIME 
+Frontend 
