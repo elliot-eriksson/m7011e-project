@@ -1,2 +1,3 @@
 #Ignore all venv directiories regardess of their location
 **/venv/
+.vscode/
