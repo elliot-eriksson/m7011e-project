@@ -12,6 +12,13 @@ class Budget(models.Model):
     # recurring = models.BooleanField(default=False)
     # recurringTime = models.CharField(max_length=100, blank=True, null=True)
 
-
-    # def __str__(self):
-    #     return self.budgetName
+class BudgetAccess(models.Model):
+    budget = models.ForeignKey(Budget, related_name='budgetAccess', on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', related_name='budgetAccess', on_delete=models.CASCADE)
+    accessLevel = models.CharField(max_length=50, choices=[
+        ('owner', 'Owner'),
+        ('admin', 'Admin'),
+        ('member', 'Member'),
+        ('viewer', 'Viewer'),
+    ])
+    accepted = models.BooleanField(default=False)

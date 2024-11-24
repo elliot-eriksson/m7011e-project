@@ -7,6 +7,10 @@ urlpatterns = [
         'get': 'listBudgets',
         'post': 'createBudget'
     })),
+    path('budget/', BudgetViewSet.as_view({
+        'get': 'listBudgets',
+        'post': 'createBudget'
+    })),
     path('budgets/<int:pk>/', BudgetViewSet.as_view({
         'get': 'getBudget',
         'put': 'updateBudget',
