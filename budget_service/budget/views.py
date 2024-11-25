@@ -12,41 +12,15 @@ from .models import Budget
 class BudgetViewSet(viewsets.ModelViewSet):
 
     ##CHANGE 
-    # queryset = Budget.objects.all()
-    # serializer_class = BudgetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    queryset = Budget.objects.all()
+    serializer_class = BudgetSerializer
+    # permission_classes = [permissions.IsAuthenticated]
 
-
-    #CRUD create, read, update, delete budget
-    def createBudget(self, request):
-        serializer = BudgetSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(owner=request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
         print('creating budget')
-        self.createBudgetAccessEntry(serializer.instance, request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def getBudget(self, request, pk=None):
-        budget = Budget.objects.get(id=pk)
-        serializer = BudgetSerializer(budget)
-        return Response(serializer.data)
-    
-    def listBudgets(self, request):
-        budgets = Budget.objects.all()
-        serializer = BudgetSerializer(budgets, many=True)
-        return Response(serializer.data)
-    
-    def updateBudget(self, request, pk=None):
-        budget = Budget.objects.get(id=pk)
-        serializer = BudgetSerializer(instance=budget, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-    
-    def deleteBudget(self, pk=None):
-        budget = Budget.objects.get(id=pk)
-        budget.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        self.createBudgetAccessEntry(serializer.instance, self.request.user)
 
     def createBudgetAccessEntry(self, budget, user, accessLevel= 'owner', accepted=True):
         print('creating budget access entry')
@@ -60,57 +34,22 @@ class BudgetViewSet(viewsets.ModelViewSet):
         budget_access_serializer.is_valid(raise_exception=True)
         budget_access_serializer.save()
 
-# @api_view(['POST'])
-# def create_budget(request, pk):
-#     budget = Budget.objects.get(id=pk)
 
 class BudgetAccessViewSet(viewsets.ModelViewSet):
-    # queryset = Budget.objects.all()
-    # serializer_class = BudgetSerializer
+    queryset = Budget.objects.all()
+    serializer_class = BudgetAccessSerializer
 
-    #CRUD create, read, update, delete budget access
-    def createBudgetAccess(self, request):
-        serializer = BudgetAccessSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    # should be possible for user to get list of all budgets they have access to
-    # and list of all users that have access to a budget
-
-    def listBudgetAccessByUser(self, request, pk=None):
-        user = get_user_model().objects.get(id=pk)
+    def listBudgetAccessByUser(self, request, user_id=None):
+        user = get_user_model().objects.get(id=user_id)
         budgetAccess = user.budgetAccess.all()
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
         return Response(serializer.data)
     
-    def listBudgetAccessByBudget(self, request, pk=None):
-        budget = Budget.objects.get(id=pk)
+    def listBudgetAccessByBudget(self, request, budget_id=None):
+        budget = Budget.objects.get(id=budget_id)
         budgetAccess = budget.budgetAccess.all()
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
         return Response(serializer.data)
-    
-    # def getBudgetAccess(self, request, pk=None):
-    #     budgetAccess = BudgetAccess.objects.get(id=pk)
-    #     serializer = BudgetAccessSerializer(budgetAccess)
-    #     return Response(serializer.data)
-    
-    # def listBudgetAccess(self, request):
-    #     budgetAccess = BudgetAccess.objects.all()
-    #     serializer = BudgetAccessSerializer(budgetAccess, many=True)
-    #     return Response(serializer.data)
-    
-    def updateBudgetAccess(self, request, pk=None):
-        budgetAccess = BudgetAccess.objects.get(id=pk)
-        serializer = BudgetAccessSerializer(instance=budgetAccess, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-    
-    def deleteBudgetAccess(self, pk=None):
-        budgetAccess = BudgetAccess.objects.get(id=pk)
-        budgetAccess.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)    
 
 
 class UserAPIView(APIView):
