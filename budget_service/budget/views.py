@@ -3,7 +3,8 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import *
 from .models import Budget
 
@@ -14,11 +15,14 @@ class BudgetViewSet(viewsets.ModelViewSet):
     ##CHANGE 
     queryset = Budget.objects.all()
     serializer_class = BudgetSerializer
+    authentication_classes = [JWTAuthentication]
+    permissions_classes = [IsAuthenticated]
     # permission_classes = [permissions.IsAuthenticated]
 
     
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        user_id = self.request.user.id
+        serializer.save(owner=user_id)
         print('creating budget')
         self.createBudgetAccessEntry(serializer.instance, self.request.user)
 
