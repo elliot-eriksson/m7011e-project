@@ -16,7 +16,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
     queryset = Budget.objects.all()
     serializer_class = BudgetSerializer
     authentication_classes = [JWTAuthentication]
-    permissions_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     # permission_classes = [permissions.IsAuthenticated]
 
     
@@ -24,13 +24,13 @@ class BudgetViewSet(viewsets.ModelViewSet):
         user_id = self.request.user.id
         serializer.save(owner=user_id)
         print('creating budget')
-        self.createBudgetAccessEntry(serializer.instance, self.request.user)
+        self.createBudgetAccessEntry(serializer.instance, user_id)
 
-    def createBudgetAccessEntry(self, budget, user, accessLevel= 'owner', accepted=True):
+    def createBudgetAccessEntry(self, budget, user_id, accessLevel= 'owner', accepted=True):
         print('creating budget access entry')
         budget_access_data = {
             'budget': budget.id,
-            'user': user.id,
+            'user': user_id,
             'accessLevel': 'owner',
             'accepted': True
         }
@@ -56,9 +56,22 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class UserAPIView(APIView):
-    def get(self, pk=None):
-        users = get_user_model().objects.all()
-        user = get_user_model().objects.get(id=pk)
-        return Response({'id': user.id})
+# class UserAPIView(APIView):
+#     def get(self, pk=None):
+#         users = get_user_model().objects.all()
+#         user = get_user_model().objects.get(id=pk)
+#         return Response({'id': user.id})
 
+class UserAPIView(APIView):
+    # Use JWT authentication and ensure the user is authenticated
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Retrieve user details from the request (decoded from the JWT token)
+        user = request.user
+        return Response({
+            'id': user.id,
+            'username': user.username,  # Add additional fields as needed
+            'email': user.email,
+        })

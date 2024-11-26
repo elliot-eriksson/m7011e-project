@@ -5,7 +5,8 @@ from .models import *
 class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
-        fields = '__all__'
+        fields = 'budgetName', 'budgetAmount', 'currentAmount', 'category', 'startDate', 'endDate'
+        # fields = '__all__'
 
 
 class BudgetAccessSerializer(serializers.ModelSerializer):
