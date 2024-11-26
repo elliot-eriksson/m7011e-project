@@ -10,6 +10,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
 
     def listByUser(self, request, user_id=None):
+        # user_id = self.request.user.id
         transactions = Transaction.objects.filter(user=user_id)
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)

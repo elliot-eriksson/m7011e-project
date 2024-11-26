@@ -1,5 +1,5 @@
 """
-URL configuration for budget_service project.
+URL configuration for oauth_login project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/
@@ -17,11 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('budget.urls')),
-    path('api/', include('transactions.urls')),
-    # path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    
+    path('api/', include('login.urls')),
+    path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
