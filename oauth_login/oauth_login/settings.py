@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ww5gxdm==rdzi6b3-1_6!csb*f31=fcm#hl03c+k-_58q25!ex
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,7 +44,8 @@ INSTALLED_APPS = [
 # OAuth Toolkit Settings
 OAUTH2_PROVIDER = {
     'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # Token expiration time (1 hour)
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'},
+    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,  # Authorization code expiration time (10 minutes)
+    # 'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'},
 }
 
 REST_FRAMEWORK = {

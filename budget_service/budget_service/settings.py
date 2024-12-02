@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ww5gxdm==rdzi6b3-1_6!csb*f31=fcm#hl03c+k-_58q25!ex
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'transactions',
     'corsheaders',
-    'oauth2_provider',
     'rest_framework',
     'budget',
 ]
@@ -52,7 +51,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',  
 ]
@@ -130,23 +128,34 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_SERVICE_URL = 'http://127.0.0.1:8000'
+
 # OAuth Toolkit Settings
 # OAUTH2_PROVIDER = {
-#     'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # Token expiration time (1 hour)
 #     'SCOPES': {
 #         'read': 'Read scope',
 #         'write': 'Write scope',
 #         'groups': 'Access to your groups',
 #     },
 # }
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-        ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-        )
+        'rest_framework.authentication.TokenAuthentication',  # Optional if using custom validation
+    )
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    #     )
 }
 LOGIN_URL = 'admin:login'
 
 CORS_ORIGIN_ALLOW_ALL = True  # For development purposes
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)

@@ -4,8 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-# from rest_framework_oauth.authentication import JWTAuthentication
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+import requests
+from django.conf import settings
 from .serializers import *
 from .models import Budget
 
@@ -16,22 +16,65 @@ class BudgetViewSet(viewsets.ModelViewSet):
     ##CHANGE
     queryset = Budget.objects.all()
     serializer_class = BudgetSerializer
-    print('BudgetViewSet')
-    authentication_classes = [OAuth2Authentication]
-    print('authclass', authentication_classes)
-    permission_classes = [IsAuthenticated]
-    print('permission_classes', permission_classes)
+    # permission_classes = [IsAuthenticated]
 
-    # permission_classes = [permissions.IsAuthenticated]
+
+
+    def validate_token(self, token):
+        """
+        Validates the token by calling the auth service.
+        """
+        print('validating token')
+        auth_url = f"{settings.AUTH_SERVICE_URL}/api/validate_token/"
+        print(f"Auth URL: {auth_url}")
+        headers = {'Authorization': f'Bearer {token}'}
+        print(f"Headers: {headers}")
+        try:
+            print('trying to validate token')
+            response = requests.get(auth_url, headers=headers)
+            print(f"Response: {response}")
+            if response.status_code == 200:
+                return response.json()  # User info if token is valid
+            return None  # Invalid or expired token
+        except requests.RequestException as e:
+            print(f"Error validating token: {e}")
+            return None
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Override dispatch to validate the token before handling any requests.
+        """
+        print('dispatching')
+        token = request.META.get('HTTP_AUTHORIZATION', '').split('Bearer ')[-1]
+        user_info = self.validate_token(token)
+        if not user_info:
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+        print(f"User info: {user_info}")
+
+        request.user = user_info.get('user_id')  # Attach user ID to the request for later use
+        print(f"User: {request.user}")
+
+        request.user_info = user_info  # Attach user info to the request for later use
+        print(f"User Info: {request.user}")
+        print(f"Request: {request}")
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
+        print('getting queryset')
+        self.request.user = self.request.user_info.get('user_id')
         print(f"User: {self.request.user}")
         print(f"Budgets for user: {Budget.objects.filter(owner=self.request.user)}")
         return Budget.objects.filter(owner=self.request.user)
 
     def list(self, request, *args, **kwargs):
-        print(f"Authorization Header: {request.META.get('HTTP_AUTHORIZATION')}")
+        print('listing budgets')
         print(f"User: {request.user}")
-        print(f"Auth: {request.auth}")
+        print(f"User_info: {request.user_info}")
+        
+        request.user = request.user_info.get('user_id')
+        # print(f"Authorization Header: {request.META.get('HTTP_AUTHORIZATION')}")
+        # print(f"User: {request.user_info.get('user_id')}")
+        # print(f"Auth: {request.auth}")
         return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -79,7 +122,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
 
 class UserAPIView(APIView):
     # Use JWT authentication and ensure the user is authenticated
-    authentication_classes = [OAuth2Authentication]
+    # authentication_classes = [OAuth2Authentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
