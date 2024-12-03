@@ -6,10 +6,12 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+# from .consumer import validate_token_with_auth_service
 import requests
 from django.conf import settings
 from .serializers import *
 from .models import Budget
+from budget_service.auth_service import AuthService
 
 # Create your views here.
 class BudgetViewSet(viewsets.ModelViewSet):
@@ -44,26 +46,40 @@ class BudgetViewSet(viewsets.ModelViewSet):
         #     print(f"Error validating token: {e}")
         #     return None
         
-
     def dispatch(self, request, *args, **kwargs):
-        """
-        Override dispatch to validate the token before handling any requests.
-        """
-        print('dispatching')
+        print("Dispatching request for token validation.")
         token = request.META.get('HTTP_AUTHORIZATION', '').split('Bearer ')[-1]
-        user_info = self.validate_token(token)
-        if not user_info:
-            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
-        print(f"User info: {user_info}")
-
-        request.user = user_info.get('user_id')  # Attach user ID to the request for later use
-        print(f"User: {request.user}")
-
-        request.user_info = user_info  # Attach user info to the request for later use
-        print(f"User Info: {request.user}")
-        print(f"Request: {request}")
+        if not token:
+            return Response(
+                {'error': 'Authorization token not provided'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        
+        valid_token = AuthService.validate_token(token)
+        print(f"Token validation result: {valid_token}")
+        if not valid_token.get('valid'):
+            return Response(
+                {'error': valid_token.get('error', 'Unauthorized')},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        
+        # Store the user_id or other token data in the request for use in views
+        request.user_id = valid_token.get('user_id')  
         
         return super().dispatch(request, *args, **kwargs)
+        
+        # user_info = self.validate_token(token)
+        # if not user_info:
+        #     return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+        # print(f"User info: {user_info}")
+
+        # request.user = user_info.get('user_id')  # Attach user ID to the request for later use
+        # print(f"User: {request.user}")
+
+        # request.user_info = user_info  # Attach user info to the request for later use
+        # print(f"User Info: {request.user}")
+        # print(f"Request: {request}")
+        
 
     def get_queryset(self):
         print('getting queryset')

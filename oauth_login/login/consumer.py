@@ -12,7 +12,7 @@ channel = connection.channel()
 channel.queue_declare(queue='token_validation_queue')
 channel.queue_declare(queue='validation_result_queue')
 
-OAUTH2_INTROSPECT_URL = "http://localhost:8000/oauth/introspect/"
+OAUTH2_INTROSPECT_URL = "http://localhost:8001/oauth/introspect/"
 CLIENT_ID = "Zx6bjPzYlzArXlKhDbIvNWoIk5LsmZVdcXSpBrSV"  # Replace with your client ID
 CLIENT_SECRET = "wPgMorfcpKEdKlClhqoqeGbPAUrNOYjvxnqsH1k1V6FSdJ0H6WJ9LiUNppTi6SdIb8jOCOAOhfMDdFMMg04lvr1uCRCp6Gxr2t4Iy4LXPMXVdIxUOR4hMk5ixXNP5eef"  # Replace with your client secret
 
