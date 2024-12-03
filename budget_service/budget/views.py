@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+
+from .producer import publish
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -9,7 +11,6 @@ from django.conf import settings
 from .serializers import *
 from .models import Budget
 
-
 # Create your views here.
 class BudgetViewSet(viewsets.ModelViewSet):
 
@@ -19,26 +20,30 @@ class BudgetViewSet(viewsets.ModelViewSet):
     # permission_classes = [IsAuthenticated]
 
 
-
     def validate_token(self, token):
         """
         Validates the token by calling the auth service.
         """
-        print('validating token')
-        auth_url = f"{settings.AUTH_SERVICE_URL}/api/validate_token/"
-        print(f"Auth URL: {auth_url}")
-        headers = {'Authorization': f'Bearer {token}'}
-        print(f"Headers: {headers}")
-        try:
-            print('trying to validate token')
-            response = requests.get(auth_url, headers=headers)
-            print(f"Response: {response}")
-            if response.status_code == 200:
-                return response.json()  # User info if token is valid
-            return None  # Invalid or expired token
-        except requests.RequestException as e:
-            print(f"Error validating token: {e}")
-            return None
+        print(f'{token=}')
+        publish('validate_token', {'token': token})
+        # print('validating token')
+        # auth_url = f"{settings.AUTH_SERVICE_URL}/api/validate_token/"
+        # print(f"Auth URL: {auth_url}")
+        # headers = {'Authorization': f'Bearer {token}'}
+        # print(f"Headers: {headers}")
+        # try:
+        #     print('trying to validate token')
+        #     response = requests.get(auth_url, headers=headers)
+        #     print(f"Response: {response}")
+        #     if response.status_code == 200:
+        #         publish('validate_token', {'token': token})
+        #         return response.json()  # User info if token is valid
+            
+        #     return None  # Invalid or expired token
+        # except requests.RequestException as e:
+        #     print(f"Error validating token: {e}")
+        #     return None
+        
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -57,6 +62,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
         request.user_info = user_info  # Attach user info to the request for later use
         print(f"User Info: {request.user}")
         print(f"Request: {request}")
+        
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
