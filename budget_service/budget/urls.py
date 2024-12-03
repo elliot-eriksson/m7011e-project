@@ -19,7 +19,8 @@ urlpatterns = [
     path('budget-access/<int:pk>/', budget_access_detail, name='budget-access-detail'),
     path('budget-access/user/<int:user_id>/', budget_access_by_user, name='budget-access-by-user'),
     path('budget-access/budget/<int:budget_id>/', budget_access_by_budget, name='budget-access-by-budget'),
-
+    path('login/', LoginAPIView.as_view(), name='login'),
+    
     # path('user/', UserAPIView.as_view(), name='user-list'),
 
 ]

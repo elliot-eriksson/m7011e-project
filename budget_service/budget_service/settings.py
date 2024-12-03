@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ww5gxdm==rdzi6b3-1_6!csb*f31=fcm#hl03c+k-_58q25!ex'
+SECRET_KEY = 'django-insecure-ww5gxdm==rdzi6b3-1_6!csb*f31=fcm#hl03c+k-_58q25!sex'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
+
+SOCIAL_AUTH_CLIENTAPP_KEY = 'J2n9CM35VJ9Wv5UkWnwqAyRvS5A6B1kEJn9tcdLz'
+SOCIAL_AUTH_CLIENTAPP_SECRET = 'iRKxYp2yxZt1wcuwKtUiw2sGr9WC4kebQQzxd05vwagECPHHwIOgiiDL7C7z7vgnjBth9j6nQLkm4P0YsinuRRMwQGWuY8WUjZYRpHwEQ2aXcMkiJTbYHczH7DnMdtGH'
 
 
 # Application definition
@@ -37,10 +41,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'transactions',
+
+
     'corsheaders',
     'rest_framework',
+    'social_django',
+
     'budget',
+    'transactions',
 ]
 
 
@@ -52,7 +60,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',  
+    'django.middleware.clickjacking.XFrameOptionsMiddleware', 
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'budget_service.urls'
@@ -64,6 +73,8 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -128,7 +139,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_SERVICE_URL = 'http://127.0.0.1:8000'
+# AUTH_SERVICE_URL = 'http://127.0.0.1:8001'
 
 # OAuth Toolkit Settings
 # OAUTH2_PROVIDER = {
@@ -139,23 +150,27 @@ AUTH_SERVICE_URL = 'http://127.0.0.1:8000'
 #     },
 # }
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',  # Optional if using custom validation
-    )
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    #     )
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework.authentication.TokenAuthentication',  # Optional if using custom validation
+#     )
+#     # 'DEFAULT_PERMISSION_CLASSES': (
+#     #     'rest_framework.permissions.IsAuthenticated',
+#     #     )
+# }
 LOGIN_URL = 'admin:login'
+
+AUTHENTICATION_BACKENDS = (
+    'budget_service.budgetapp.BudgetappOAuth2',
+)
 
 CORS_ORIGIN_ALLOW_ALL = True  # For development purposes
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = (
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-)
+# CORS_ALLOW_METHODS = (
+#     'DELETE',
+#     'GET',
+#     'OPTIONS',
+#     'PATCH',
+#     'POST',
+#     'PUT',
+# )

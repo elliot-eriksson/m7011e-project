@@ -6,10 +6,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 import requests
 from django.conf import settings
+
+from budget_service.budgetapp import BudgetappOAuth2
 from .serializers import *
 from .models import Budget
+from django.contrib.auth import login, authenticate, logout
 
 
+User = get_user_model()
 # Create your views here.
 class BudgetViewSet(viewsets.ModelViewSet):
 
@@ -20,44 +24,44 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
 
 
-    def validate_token(self, token):
-        """
-        Validates the token by calling the auth service.
-        """
-        print('validating token')
-        auth_url = f"{settings.AUTH_SERVICE_URL}/api/validate_token/"
-        print(f"Auth URL: {auth_url}")
-        headers = {'Authorization': f'Bearer {token}'}
-        print(f"Headers: {headers}")
-        try:
-            print('trying to validate token')
-            response = requests.get(auth_url, headers=headers)
-            print(f"Response: {response}")
-            if response.status_code == 200:
-                return response.json()  # User info if token is valid
-            return None  # Invalid or expired token
-        except requests.RequestException as e:
-            print(f"Error validating token: {e}")
-            return None
+    # def validate_token(self, token):
+    #     """
+    #     Validates the token by calling the auth service.
+    #     """
+    #     print('validating token')
+    #     auth_url = f"{settings.AUTH_SERVICE_URL}/api/validate_token/"
+    #     print(f"Auth URL: {auth_url}")
+    #     headers = {'Authorization': f'Bearer {token}'}
+    #     print(f"Headers: {headers}")
+    #     try:
+    #         print('trying to validate token')
+    #         response = requests.get(auth_url, headers=headers)
+    #         print(f"Response: {response}")
+    #         if response.status_code == 200:
+    #             return response.json()  # User info if token is valid
+    #         return None  # Invalid or expired token
+    #     except requests.RequestException as e:
+    #         print(f"Error validating token: {e}")
+    #         return None
 
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Override dispatch to validate the token before handling any requests.
-        """
-        print('dispatching')
-        token = request.META.get('HTTP_AUTHORIZATION', '').split('Bearer ')[-1]
-        user_info = self.validate_token(token)
-        if not user_info:
-            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
-        print(f"User info: {user_info}")
+    # def dispatch(self, request, *args, **kwargs):
+    #     """
+    #     Override dispatch to validate the token before handling any requests.
+    #     """
+    #     print('dispatching')
+    #     token = request.META.get('HTTP_AUTHORIZATION', '').split('Bearer ')[-1]
+    #     user_info = self.validate_token(token)
+    #     if not user_info:
+    #         return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+    #     print(f"User info: {user_info}")
 
-        request.user = user_info.get('user_id')  # Attach user ID to the request for later use
-        print(f"User: {request.user}")
+    #     request.user = user_info.get('user_id')  # Attach user ID to the request for later use
+    #     print(f"User: {request.user}")
 
-        request.user_info = user_info  # Attach user info to the request for later use
-        print(f"User Info: {request.user}")
-        print(f"Request: {request}")
-        return super().dispatch(request, *args, **kwargs)
+    #     request.user_info = user_info  # Attach user info to the request for later use
+    #     print(f"User Info: {request.user}")
+    #     print(f"Request: {request}")
+    #     return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         print('getting queryset')
@@ -68,6 +72,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         print('listing budgets')
+        print(f"Request: {request}")
         print(f"User: {request.user}")
         print(f"User_info: {request.user_info}")
         
@@ -133,3 +138,38 @@ class UserAPIView(APIView):
             'username': user.username,  # Add additional fields as needed
             'email': user.email,
         })
+
+class LoginAPIView(APIView):
+    def post(self, request):
+        print('logging in')
+        print("Received request data:", request)
+        print("Received request data:", request.data)
+        print("headers:", request.headers)
+        username = request.data.get('username')
+        password = request.data.get('password')
+        print(f"Username: {username}")
+        print(f"Password: {password}")
+        if not username or not password:
+            return Response({"error": "Missing username or password"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = authenticate(backend=BudgetappOAuth2, username=username, password=password)
+        print(f"User: {user}")
+        user = BudgetappOAuth2().authenticate(request)
+
+        # user = authenticate(username=username, password=password)
+        print(f"User: {user}")
+
+        if user is not None:
+            return Response({"success": "User authenticated"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        if user:
+            login(request, user)
+            print('logged in', user)
+            return Response({'id': user.id})
+        # print(f"Data: {request.data}")
+        # login_url = f"{settings.AUTH_SERVICE_URL}/api/login/"
+        # print(f"Login URL: {login_url}")
+        # response = requests.post(login_url, json=request.data)
+        # print(f"Response: {response}")
+        # return Response(response.json(), status=response.status_code)
