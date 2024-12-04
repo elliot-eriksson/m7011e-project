@@ -11,6 +11,8 @@ from oauth2_provider.views import IntrospectTokenView
 from django.views.decorators.csrf import csrf_exempt
 from oauth2_provider.models import get_access_token_model
 from django.core.exceptions import ObjectDoesNotExist
+import json
+
 
 
 class UserList(generics.ListCreateAPIView):
@@ -62,60 +64,27 @@ class ValidateTokenView(View):
 
 
 class CustomIntrospectToken(IntrospectTokenView):
-    @csrf_exempt
-    def dispatch(self, request, *args, **kwargs):
-        print("CustomIntrospectToken view is being called")
-        return super().dispatch(request, *args, **kwargs)
-    
-    # def get(self, request, *args, **kwargs):
-    #     print('get')
-    #     return super().get(request, *args, **kwargs)
-    
+
     def post(self, request, *args, **kwargs):
         print('post')
         post_data = request.POST
         print('post_data', post_data)
         token = post_data.get('token')
-        
-        # Use the base class's get_token_response method to get the initial response
-        token_info = super().get_token_response(token)
-        print('token_info', token_info)
-        print('token active', token_info.get('active'))
-        if 'user_id' not in token_info:
-            print('userID')
-        if token_info.get("active"):
-            print('active')
-        # Append the user ID if the token is valid and active
-        if 'user_id' not in token_info:
-            print('token_info', token_info)
-            try:
-                print('token', token)
+
+        response = super().post(request, *args, **kwargs)
+        print('jsondata', response)
+        if isinstance(response, JsonResponse):
+            json_data = json.loads(response.content)
+            
+            print('json_data', json_data)
+
+            if json_data.get("active", False):
+                # Add a new field to the response data
                 token_checksum = hashlib.sha256(token.encode("utf-8")).hexdigest()
                 token_obj = get_access_token_model().objects.get(token_checksum=token_checksum)
-                if token_obj.user:
-                    token_info['user_id'] = token_obj.user.id  # Add user ID to the response
-                    print('token_info with user_id try', token_info['user_id'])
-            except ObjectDoesNotExist:
-                print('token_info with user_id exeption', token_info)
-                pass  # Token does not exist, handle appropriately
+                json_data["user_id"] = token_obj.user.id
+                print('json_data with user_id', json_data)
+            else:
+                json_data["user_id"] = None
 
-        print('token_info with user_id', token_info)
-        return JsonResponse(token_info)
-    
-    def get_token_response(self, token):
-        # This method uses the base class logic to get token info
-        return super().get_token_response(token)
-        
-    # def get_token_response(self, token):
-    #     # Get the token info from the default introspection
-    #     print('get_token_info')
-    #     token_info = super().get_token_response(token)
-        
-    #     # Add custom data to the response
-    #     print('token_info', token_info)
-    #     print('token', token_info['valid'])
-    #     # user = token.user
-    #     # if user:
-    #     #     token_info['user_id'] = user.id  # Include the user ID in the response
-    #     # print('token_info', token_info)
-    #     return token_info
+        return JsonResponse(json_data)
