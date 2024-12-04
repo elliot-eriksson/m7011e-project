@@ -3,19 +3,40 @@
 - plus och minus transaktioner
 -
 ### 2. Budget --> flera personer (min 1) many to many relation
+    Det går att skapa en budget och lägga till transaktioner till den
+
+    Todo
+    Behöver gå att lägga till andra användare till en budget (typ skriva in deras username eller email)
+    (om inte username eller email finns så kanske vi inte ger någon respons?)
+
+
 
 ### 2.b roller : owner, admin, viewer, memeber/user
     owner --> alla
     admin --> memeber/userm, viewer
 
+    Finns tabell där detta mappas mellan användare och budget
+
+    Todo
+    Behöver läggas till logik som begränsar vad användare kan göra efter denna tabell
+    Tror det behövs en tabell som säger vad typ admin kan göra och vad user kan. (så vi bara kan hämta denna till checks)
+
+
+
 ### 3. User pages 
-    show all budgets users have permission for
+    show all budgets users have permission for 
+
+    Finns logik för att hämta alla budgets en användare har behörighet till 
+    (men ska nog ändra så att vi kollar om de har accepterat budgeten också)
+
+    
 
 ### 4. Email service / Notifications service barebone
 
 
 ### 5. Authentication / session management (JWT)
-
+    pretty much done, might need some future changes.
+    Such as cashing token after authentication to limit calls to auth server
 
 ### 6. Summary and graphs
 

@@ -12,4 +12,5 @@ class BudgetSerializer(serializers.ModelSerializer):
 class BudgetAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = BudgetAccess
+        # fields = 'accessLevel', 'accepted'
         fields = '__all__'

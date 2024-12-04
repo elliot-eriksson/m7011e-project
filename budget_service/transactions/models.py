@@ -9,9 +9,7 @@ class Transaction(models.Model):
         ('expense', 'Expense'),
         # ('transfer', 'Transfer'),
         # ('leftover', 'Leftover'),
-
     ]
-    # user = models.ForeignKey('auth.User', related_name='transactions', on_delete=models.CASCADE)
     user = models.BigIntegerField()
     budget = models.ForeignKey('budget.Budget', related_name='transactions', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)

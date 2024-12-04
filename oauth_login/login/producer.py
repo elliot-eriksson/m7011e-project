@@ -10,6 +10,7 @@ def publish(method, body):
     print('publishing to admin')
     properties = pika.BasicProperties(method)
     channel.basic_publish(exchange='', routing_key='main', body=json.dumps(body), properties=properties)
+    
 
 
     # connection.close()
