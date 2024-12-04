@@ -10,34 +10,34 @@ connection = pika.BlockingConnection(paramas)
 channel = connection.channel()
 
 channel.queue_declare(queue='token_validation_queue')
-channel.queue_declare(queue='validation_result_queue')
+# channel.queue_declare(queue='validation_result_queue')
 
-OAUTH2_INTROSPECT_URL = "http://localhost:8001/oauth/introspect/"
-CLIENT_ID = "Zx6bjPzYlzArXlKhDbIvNWoIk5LsmZVdcXSpBrSV"  # Replace with your client ID
-CLIENT_SECRET = "wPgMorfcpKEdKlClhqoqeGbPAUrNOYjvxnqsH1k1V6FSdJ0H6WJ9LiUNppTi6SdIb8jOCOAOhfMDdFMMg04lvr1uCRCp6Gxr2t4Iy4LXPMXVdIxUOR4hMk5ixXNP5eef"  # Replace with your client secret
+# OAUTH2_INTROSPECT_URL = "http://localhost:8001/oauth/introspect/"
+# CLIENT_ID = "Zx6bjPzYlzArXlKhDbIvNWoIk5LsmZVdcXSpBrSV"  # Replace with your client ID
+# CLIENT_SECRET = "wPgMorfcpKEdKlClhqoqeGbPAUrNOYjvxnqsH1k1V6FSdJ0H6WJ9LiUNppTi6SdIb8jOCOAOhfMDdFMMg04lvr1uCRCp6Gxr2t4Iy4LXPMXVdIxUOR4hMk5ixXNP5eef"  # Replace with your client secret
 
-def validate_token(token):
-    """
-    Validate the token using OAuth2 introspection endpoint or JWT decoding.
-    """
+# def validate_token(token):
+#     """
+#     Validate the token using OAuth2 introspection endpoint or JWT decoding.
+#     """
     
-    # access_token = AccessToken.objects.get(token=token, expires__gt=now())
-    # print("Access token:", access_token)
-    try:
-        response = requests.post(
-            OAUTH2_INTROSPECT_URL,
-            data={"token": token},
-            auth=(CLIENT_ID, CLIENT_SECRET)
-        )
-        print("Response data:", response.json())
-        response_data = response.json()
-        if response.status_code == 200 and response_data.get("active"):
-            return {"valid": True, "user_id": response_data.get("username")}
-        else:
-            return {"valid": False, "error": "Invalid or expired token"}
+#     # access_token = AccessToken.objects.get(token=token, expires__gt=now())
+#     # print("Access token:", access_token)
+#     try:
+#         response = requests.post(
+#             OAUTH2_INTROSPECT_URL,
+#             data={"token": token},
+#             auth=(CLIENT_ID, CLIENT_SECRET)
+#         )
+#         print("Response data:", response.json())
+#         response_data = response.json()
+#         if response.status_code == 200 and response_data.get("active"):
+#             return {"valid": True, "user_id": response_data.get("username")}
+#         else:
+#             return {"valid": False, "error": "Invalid or expired token"}
 
-    except Exception as e:
-        return {"valid": False, "error": str(e)}
+#     except Exception as e:
+#         return {"valid": False, "error": str(e)}
     
 def on_message(channel, method, properties, body):
     """

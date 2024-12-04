@@ -17,11 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from login.views import CustomTokenIntrospectionView
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('login.urls')),
-    # path('oauth/introspect/', CustomTokenIntrospectionView.as_view() , name='introspect'),
+    # path('custom_introspect/', CustomTokenIntrospectionView.as_view() , name='introspect'),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
