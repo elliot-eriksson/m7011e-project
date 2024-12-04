@@ -38,7 +38,12 @@
     pretty much done, might need some future changes.
     Such as cashing token after authentication to limit calls to auth server
 
-### 6. Summary and graphs
+### 6. Ensure data integrity
+    Använd consumer and producers för att fixa så att tex om en användare deletas kanske dess budgetar också ska försvinna
+    dvs virtual forign keys.
+
+
+### 7. Summary and graphs
 
 
 ### Feature 
