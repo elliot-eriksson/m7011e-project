@@ -39,8 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'oauth2_provider',
     'rest_framework',
-    'login.apps.LoginConfig',
+    # 'login.apps.LoginConfig',
     'corsheaders',
+    'login',
 ]
 # OAuth Toolkit Settings
 OAUTH2_PROVIDER = {
