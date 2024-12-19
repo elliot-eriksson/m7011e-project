@@ -1,3 +1,4 @@
+import json
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from .producer import publish
@@ -12,6 +13,7 @@ from django.conf import settings
 from .serializers import *
 from .models import Budget
 from budget_service.auth_service import AuthService
+from budget_service.user_lookup import getUserID
 
 # Create your views here.
 class BudgetViewSet(viewsets.ModelViewSet):
@@ -81,6 +83,11 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     queryset = Budget.objects.all()
     serializer_class = BudgetAccessSerializer
 
+    def dispatch(self, request, *args, **kwargs):
+        print("Dispatching request for token validation.")
+        request = AuthService.validate_token(request)
+        return super().dispatch(request, *args, **kwargs)
+
     def listBudgetAccessByUser(self, request, user_id=None):
         user = user_id
         budgetAccess = BudgetAccess.objects.filter(user=user)
@@ -95,6 +102,44 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
         return Response(serializer.data)
 
+    # Todo: kanske byta namn på denna till invite_user
+    def addBudgetAccess(self, request, pk=None):
+        self.request.user = self.request.session.get('user_id')
+        budget = get_object_or_404(Budget, pk=pk)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
+
+        if not access.has_permission('invite_users'):
+            return Response({'error': 'You do not have permission to invite users.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+        username = request.data.get('username')
+        email = request.data.get('email')
+        role = request.data.get('role', BudgetRole.MEMBER)
+
+        if not username and not email:
+            return Response(
+                {'error': 'At least one of username or email must be provided.'},
+                status=status.HTTP_400_BAD_REQUEST
+        )
+
+        if role == BudgetRole.ADMIN and not access.has_permission('invite_user_as_admin'):
+            return Response({'error': 'You do not have permission to invite admins.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if role not in [BudgetRole.ADMIN, BudgetRole.MEMBER]:
+            return Response({'error': 'Invalid role.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user_ID = getUserID(username, email)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+
+
+        return Response({'message': 'User invited successfully.'})
+
+
+        
 
 # class UserAPIView(APIView):
 #     def get(self, pk=None):

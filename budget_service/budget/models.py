@@ -14,14 +14,76 @@ class Budget(models.Model):
     # recurring = models.BooleanField(default=False)
     # recurringTime = models.CharField(max_length=100, blank=True, null=True)
 
+#TODO Add check to ensure SuperUser
+# class BudgetRolls(models.Model):
+#     rollName = models.CharField(max_length=50, choices=[
+#         ('owner', 'Owner'),
+#         ('admin', 'Admin'),
+#         ('member', 'Member'),
+#     ])
+#     rollDescription = models.CharField(max_length=100) 
+#     deleteBudgetFlag = models.BooleanField(default=False) 
+#     editBudgetFlag = models.BooleanField(default=False) 
+    
+#     #Admin Flags
+#     addBudgetAccesFlag = models.BooleanField(default=False)
+#     editBudgetAccessFlag = models.BooleanField(default=False) 
+#     deleteBudgetAccessFlag = models.BooleanField(default=False)
+
+#     # #Owner Flags
+#     # addBudgetAdminFlag = models.BooleanField(default=False)
+#     # editBudgetAdminFlag = models.BooleanField(default=False)
+#     # deleteBudgetAdminFlag = models.BooleanField(default=False)
+
+#     #Member Flags
+#     addTranactionFlag = models.BooleanField(default=False) 
+#     editTransactionFlag = models.BooleanField(default=False) 
+#     deleteTransactionFlag = models.BooleanField(default=False)
+    
+
+class BudgetRole(models.TextChoices):
+    owner = 'owner', 'Owner'
+    admin = 'admin', 'Admin'
+    member = 'member', 'Member'
+
 class BudgetAccess(models.Model):
     budget = models.ForeignKey(Budget, related_name='budgetAccess', on_delete=models.CASCADE)
-    # user = models.ForeignKey(User, related_name='budgetAccess', on_delete=models.CASCADE)
     user = models.BigIntegerField()
-    accessLevel = models.CharField(max_length=50, choices=[
-        ('owner', 'Owner'),
-        ('admin', 'Admin'),
-        ('member', 'Member'),
-        ('viewer', 'Viewer'),
-    ])
+    accessLevel = models.CharField(max_length=50, choices=BudgetRole.choices)
     accepted = models.BooleanField(default=False)
+    
+    def has_permission(self, permission: str) -> bool:
+
+        permissions = {
+            BudgetRole.OWNER: [
+                'delete_budget', 
+                'edit_budget', 
+                'add_transaction', 
+                'edit_transaction', 
+                'delete_transaction', 
+                'invite_users',
+                'invite_user_as_admin',
+                'remove_user',
+                'remove_admin',
+                'edit_access_level'
+
+            ],
+            BudgetRole.ADMIN: [
+                'edit_budget', 
+                'add_transaction', 
+                'edit_transaction', 
+                'delete_transaction', 
+                'invite_users',
+                'remove_user'
+            ],
+            BudgetRole.MEMBER: [
+                'add_transaction'
+            ]
+        }
+
+        return permission in permissions[self.accessLevel,[]]
+
+
+    # recurring = models.BooleanField(default=False)
+    # recurringTime = models.CharField(max_length=100, blank=True, null=True)
+
