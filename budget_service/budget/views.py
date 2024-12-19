@@ -114,7 +114,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
 
         username = request.data.get('username')
         email = request.data.get('email')
-        role = request.data.get('role', BudgetRole.MEMBER)
+        role = request.data.get('role', BudgetRole.member)
 
         if not username and not email:
             return Response(
@@ -122,17 +122,18 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
         )
 
-        if role == BudgetRole.ADMIN and not access.has_permission('invite_user_as_admin'):
+        if role == BudgetRole.admin and not access.has_permission('invite_user_as_admin'):
             return Response({'error': 'You do not have permission to invite admins.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if role not in [BudgetRole.ADMIN, BudgetRole.MEMBER]:
+        if role not in [BudgetRole.admin, BudgetRole.member]:
             return Response({'error': 'Invalid role.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             user_ID = getUserID(username, email)
+            print(f"User ID: {user_ID}")
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         
 
 

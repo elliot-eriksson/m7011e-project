@@ -15,7 +15,8 @@ def getUserID(username=None, email=None):
     publish("user.lookup", payload, "user_lookup")
 
     user_id_response = None
-    for _ in range(10):
+    for _ in range(1000):
+        print("Waiting for response...")
         method_frame, properties, body = channel.basic_get(queue='user_lookup_response', auto_ack=True)
         if body:
             response = json.loads(body)

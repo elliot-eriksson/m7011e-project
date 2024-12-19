@@ -1,6 +1,7 @@
 import json
 from django.core.exceptions import ObjectDoesNotExist
-from login.views import UserDetail  # Adjust the import based on your actual model location
+from django.contrib.auth.models import User
+# from login.views import UserDetail  # Adjust the import based on your actual model location
 
 def user_lookup(channel, method, properties, body):
     """
@@ -20,20 +21,22 @@ def user_lookup(channel, method, properties, body):
     # Lookup the user
     try: 
         if username:
-            user = UserDetail.objects.get(username=username)
+            user = User.objects.get(username=username)
             print("User found:", user)
         elif email:
-            user = UserDetail.objects.get(email=email)
+            user = User.objects.get(email=email)
             print("User found:", user)
         user_id = user.id
 
         response_body = json.dumps({"user_id": user_id})
+        print("innan publish.")
         channel.basic_publish(
             exchange='',
             routing_key='user_lookup_response',
             body=response_body
         )
-        channel.basic_ack(delivery_tag=method.delivery_tag)
+        print("innan ack.")
+        # channel.basic_ack(delivery_tag=method.delivery_tag)
     except ObjectDoesNotExist as e:
         print("User not found:", e)
         response_body = json.dumps({"error": "User not found."})

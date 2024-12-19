@@ -8,6 +8,7 @@ connection = pika.BlockingConnection(params)
 channel = connection.channel()
 
 channel.queue_declare(queue='main')
+channel.queue_declare(queue='user_lookup_response')
 
 
 def callback(ch, method, properties, body):

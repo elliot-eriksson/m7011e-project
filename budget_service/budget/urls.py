@@ -7,7 +7,7 @@ budget_detail = BudgetViewSet.as_view({'get': 'retrieve', 'put': 'update', 'dele
 
 # BudgetAccessViewSet URLs
 budget_access_list = BudgetAccessViewSet.as_view({'get': 'list', 'post': 'create'})
-budget_access_detail = BudgetAccessViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})
+budget_access_detail = BudgetAccessViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy', 'post': 'addBudgetAccess'})
 budget_access_by_user = BudgetAccessViewSet.as_view({'get': 'listBudgetAccessByUser'})
 budget_access_by_budget = BudgetAccessViewSet.as_view({'get': 'listBudgetAccessByBudget'})
 

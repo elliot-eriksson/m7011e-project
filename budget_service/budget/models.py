@@ -55,7 +55,7 @@ class BudgetAccess(models.Model):
     def has_permission(self, permission: str) -> bool:
 
         permissions = {
-            BudgetRole.OWNER: [
+            BudgetRole.owner: [
                 'delete_budget', 
                 'edit_budget', 
                 'add_transaction', 
@@ -68,7 +68,7 @@ class BudgetAccess(models.Model):
                 'edit_access_level'
 
             ],
-            BudgetRole.ADMIN: [
+            BudgetRole.admin: [
                 'edit_budget', 
                 'add_transaction', 
                 'edit_transaction', 
@@ -76,12 +76,12 @@ class BudgetAccess(models.Model):
                 'invite_users',
                 'remove_user'
             ],
-            BudgetRole.MEMBER: [
+            BudgetRole.member: [
                 'add_transaction'
             ]
         }
 
-        return permission in permissions[self.accessLevel,[]]
+        return permission in permissions.get(self.accessLevel, [])
 
 
     # recurring = models.BooleanField(default=False)
