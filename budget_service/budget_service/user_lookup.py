@@ -21,6 +21,7 @@ def getUserID(username=None, email=None):
         if body:
             response = json.loads(body)
             user_id_response = response.get('user_id')
+            user_email_response = response.get('user_email')
             break
         time.sleep(0.5)  # Wait before checking again (polling)
 
@@ -28,4 +29,7 @@ def getUserID(username=None, email=None):
     if user_id_response is None:
         raise Exception("User lookup failed.")
 
-    return user_id_response
+    if user_email_response is None:
+        raise Exception("User lookup failed.")
+    
+    return user_id_response, user_email_response

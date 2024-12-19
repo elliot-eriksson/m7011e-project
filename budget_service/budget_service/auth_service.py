@@ -44,4 +44,5 @@ class AuthService:
             )
                
         request.session["user_id"] = valid_token.get("user_id")
+        request.session["username"] = valid_token.get("username")
         return request

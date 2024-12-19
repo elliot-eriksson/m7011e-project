@@ -129,10 +129,15 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid role.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            user_ID = getUserID(username, email)
+            user_ID, user_email = getUserID(username, email)
             print(f"User ID: {user_ID}")
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        print(f"Den som bjöd in: {self.request.session.get('username')}")
+        print(f"Budget Name: {budget.budgetName}")
+        print(f"User email: {user_email}")
+
 
         
 
