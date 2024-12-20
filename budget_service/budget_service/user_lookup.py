@@ -20,6 +20,7 @@ def getUserID(username=None, email=None):
         method_frame, properties, body = channel.basic_get(queue='user_lookup_response', auto_ack=True)
         if body:
             response = json.loads(body)
+            print("Response received:", response)
             user_id_response = response.get('user_id')
             user_email_response = response.get('user_email')
             break

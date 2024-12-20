@@ -14,6 +14,7 @@ from .serializers import *
 from .models import Budget
 from budget_service.auth_service import AuthService
 from budget_service.user_lookup import getUserID
+from django.utils.crypto import get_random_string
 
 # Create your views here.
 class BudgetViewSet(viewsets.ModelViewSet):
@@ -130,14 +131,40 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         
         try:
             user_ID, user_email = getUserID(username, email)
-            print(f"User ID: {user_ID}")
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        print(f"Den som bjöd in: {self.request.session.get('username')}")
-        print(f"Budget Name: {budget.budgetName}")
-        print(f"User email: {user_email}")
 
+        while True:
+            slugToken = get_random_string(length=16, allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if not BudgetAccess.objects.filter(slug=slugToken).exists():
+                break
+        payload = {}
+        payload['recipient_email'] = user_email
+        payload['budget_name'] = budget.budgetName
+        payload['role'] = role
+        payload['inviter_name'] = self.request.session.get('username')
+        payload['token'] = slugToken
+
+        try:
+            publish('send.email', payload,'send_email_invitations')
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+        # try:
+        #     budget_access_data = {
+        #         'budget': budget.id,
+        #         'user': user_ID,
+        #         'accessLevel': role,
+        #         'slug': slugToken
+        #     }
+
+        #     budget_access_serializer = BudgetAccessSerializer(data=budget_access_data)
+        #     budget_access_serializer.is_valid(raise_exception=True)
+        #     budget_access_serializer.save()
+        # except Exception as e:
+        #     return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         
 

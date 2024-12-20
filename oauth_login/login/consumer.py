@@ -32,6 +32,7 @@ def user_lookup(channel, method, properties, body):
         print("User email:", user_email)
 
         response_body = json.dumps({"user_id": user_id, "user_email": user_email})
+        print("Response body:", response_body)
         print("innan publish.")
         channel.basic_publish(
             exchange='',

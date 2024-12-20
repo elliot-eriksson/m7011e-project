@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-class email(models.Model):
+class Email(models.Model):
     recipient_email = models.EmailField()
     subject = models.CharField(max_length=255)
     message = models.TextField()

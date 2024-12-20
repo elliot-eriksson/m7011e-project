@@ -1,11 +1,12 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import EmailLogViewSet
+from django.urls import path
 
-router = DefaultRouter()
-router.register(r'email_logs', EmailLogViewSet)
+# from rest_framework.routers import DefaultRouter
+from .views import EmailLogView
+
+# router = DefaultRouter()
+# router.register(r'email_logs', EmailLogViewSet)
 
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('api/', EmailLogView.as_view({'get': 'list', 'post': 'create'})),
 ]

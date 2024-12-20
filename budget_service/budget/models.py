@@ -14,31 +14,6 @@ class Budget(models.Model):
     # recurring = models.BooleanField(default=False)
     # recurringTime = models.CharField(max_length=100, blank=True, null=True)
 
-#TODO Add check to ensure SuperUser
-# class BudgetRolls(models.Model):
-#     rollName = models.CharField(max_length=50, choices=[
-#         ('owner', 'Owner'),
-#         ('admin', 'Admin'),
-#         ('member', 'Member'),
-#     ])
-#     rollDescription = models.CharField(max_length=100) 
-#     deleteBudgetFlag = models.BooleanField(default=False) 
-#     editBudgetFlag = models.BooleanField(default=False) 
-    
-#     #Admin Flags
-#     addBudgetAccesFlag = models.BooleanField(default=False)
-#     editBudgetAccessFlag = models.BooleanField(default=False) 
-#     deleteBudgetAccessFlag = models.BooleanField(default=False)
-
-#     # #Owner Flags
-#     # addBudgetAdminFlag = models.BooleanField(default=False)
-#     # editBudgetAdminFlag = models.BooleanField(default=False)
-#     # deleteBudgetAdminFlag = models.BooleanField(default=False)
-
-#     #Member Flags
-#     addTranactionFlag = models.BooleanField(default=False) 
-#     editTransactionFlag = models.BooleanField(default=False) 
-#     deleteTransactionFlag = models.BooleanField(default=False)
     
 
 class BudgetRole(models.TextChoices):
@@ -50,8 +25,11 @@ class BudgetAccess(models.Model):
     budget = models.ForeignKey(Budget, related_name='budgetAccess', on_delete=models.CASCADE)
     user = models.BigIntegerField()
     accessLevel = models.CharField(max_length=50, choices=BudgetRole.choices)
+    slug = models.SlugField(max_length=16, unique=True, null=True, blank=True)
     accepted = models.BooleanField(default=False)
     
+
+
     def has_permission(self, permission: str) -> bool:
 
         permissions = {

@@ -1,10 +1,10 @@
 from rest_framework import viewsets
-from .models import EmailLog
+from .models import Email
 from .serializers import EmailLogSerializer
 #TODO Add the serializer
 # 
 class EmailLogView(viewsets.ModelViewSet):
-    queryset = EmailLog.objects.all()
+    queryset = Email.objects.all()
     serializer_class = EmailLogSerializer
 
     # def post(self, request):
