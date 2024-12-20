@@ -121,3 +121,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+from decouple import config
+
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+SENDGRID_API_KEY = config('SENDGRID_API_KEY')
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_PORT = 587  # Default SMTP port
+EMAIL_USE_TLS = True  # Enable TLS for secure connection
+EMAIL_HOST_USER = "apikey"  # Username for SendGrid SMTP is always 'apikey'
+EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY')
