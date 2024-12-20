@@ -139,7 +139,7 @@ EMAIL_USE_TLS = True  # Enable TLS for secure connection
 EMAIL_HOST_USER = "apikey"  # Username for SendGrid SMTP is always 'apikey'
 EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY')
 
-BUDGET_SERVICE_URL = "http://localhost:8000"
+BUDGET_SERVICE_URL = "http://localhost:8002"
 
 CORS_ORIGIN_ALLOW_ALL = True  # For development purposes
 CORS_ALLOW_CREDENTIALS = True

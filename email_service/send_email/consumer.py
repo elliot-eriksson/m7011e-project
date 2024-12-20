@@ -19,7 +19,7 @@ def send_invitation_email(ch, method, properties, body):
     token = response.get('token')
 
 
-    invitation_link = f"{settings.BUDGET_SERVICE_URL}/api/invitations/accept?token={token}"
+    invitation_link = f"{settings.BUDGET_SERVICE_URL}/api/invitations/{token}"
     subject = f"Invitation to join the budget: {budget_name}"
     message = (
         f"Hello,\n\n"

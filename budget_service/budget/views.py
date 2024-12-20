@@ -81,6 +81,14 @@ class BudgetViewSet(viewsets.ModelViewSet):
         budget_access_serializer.is_valid(raise_exception=True)
         budget_access_serializer.save()
 
+    def destroy(self, request, *args, **kwargs):
+        self.request.user = self.request.session.get('user_id')
+        instance = self.get_object()
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        if not access.has_permission('delete_budget'):
+            return Response({'error': 'You do not have permission to delete this budget.'}, status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class BudgetAccessViewSet(viewsets.ModelViewSet):
     queryset = Budget.objects.all()
@@ -214,10 +222,15 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     
         return Response({'message': 'User invited successfully.'})
 
-class BudgetAccessAccept(APIView):
-    def accept_invitation(self, request):
+class BudgetAccessAccept(viewsets.ModelViewSet):
+    queryset = BudgetAccess.objects.all()
+    serializer_class = BudgetAccessSerializer
+
+    def accept_invitation(self, request, token=None):
         # Fetch the BudgetAccess object or return a 404
-        token = request.data.get('token')
+        print(f"Token: {token}")
+        # token = request.data.get('token')
+        # print(f"Token: {token}")
         budget_access = get_object_or_404(BudgetAccess, slug=token)
         
         if not token:
