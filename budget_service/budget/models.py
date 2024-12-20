@@ -41,9 +41,10 @@ class BudgetAccess(models.Model):
                 'delete_transaction', 
                 'invite_users',
                 'invite_user_as_admin',
-                'remove_user',
+                'remove_user_access',
                 'remove_admin',
-                'edit_access_level'
+                'edit_access_level',
+                'view_budget_access'
 
             ],
             BudgetRole.admin: [
@@ -52,7 +53,8 @@ class BudgetAccess(models.Model):
                 'edit_transaction', 
                 'delete_transaction', 
                 'invite_users',
-                'remove_user'
+                'remove_user_access',
+                'view_budget_access'
             ],
             BudgetRole.member: [
                 'add_transaction'
