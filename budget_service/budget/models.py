@@ -36,7 +36,8 @@ class BudgetAccess(models.Model):
             BudgetRole.owner: [
                 'delete_budget', 
                 'edit_budget', 
-                'add_transaction', 
+                'add_transaction',
+                'view_transactions',
                 'edit_transaction', 
                 'delete_transaction', 
                 'invite_users',
@@ -49,7 +50,8 @@ class BudgetAccess(models.Model):
             ],
             BudgetRole.admin: [
                 'edit_budget', 
-                'add_transaction', 
+                'add_transaction',
+                'view_transactions',
                 'edit_transaction', 
                 'delete_transaction', 
                 'invite_users',
@@ -57,7 +59,8 @@ class BudgetAccess(models.Model):
                 'view_budget_access'
             ],
             BudgetRole.member: [
-                'add_transaction'
+                'add_transaction',
+                'view_transactions'
             ]
         }
 

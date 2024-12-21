@@ -16,6 +16,9 @@ import json
 
 from .producer import publish
 
+# TODO: Create views to create, update, delete and list users
+# TODO: Create user Settings
+
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer

@@ -59,6 +59,13 @@ class BudgetViewSet(viewsets.ModelViewSet):
         # Return the serialized data in a Response object
         return Response(serialized_budgets)
 
+    def update(self, request, *args, **kwargs):
+        self.request.user = self.request.session.get('user_id')
+        instance = self.get_object()
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        if not access.has_permission('edit_budget'):
+            return Response({'error': 'You do not have permission to edit this budget.'}, status=status.HTTP_403_FORBIDDEN)    
+        return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         self.request.user = self.request.session.get('user_id')
@@ -98,54 +105,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         print("Dispatching request for token validation.")
         request = AuthService.validate_token(request)
         return super().dispatch(request, *args, **kwargs)
-
-    def listBudgetAccessByUser(self, request, user_id=None):
-        # TODO: ändra till slug
-        user = user_id
-        if user != request.session.get('user_id'):
-            return Response({'error': 'You do not have permission to view that users access.'}, status=status.HTTP_403_FORBIDDEN)
-        budgetAccess = BudgetAccess.objects.filter(user=user)
-        serializer = BudgetAccessSerializer(budgetAccess, many=True)
-
-        print(serializer.data)
-        return Response(serializer.data)
-
-    def listBudgetAccessByBudget(self, request, budget_id=None):
-        request.user = request.session.get('user_id')
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget_id)
-        if not access.has_permission('view_budget_access'):
-            return Response({'error': 'You do not have permission to view access to this budget.'}, status=status.HTTP_403_FORBIDDEN)
-        budget = Budget.objects.get(id=budget_id)
-        budgetAccess = BudgetAccess.objects.filter(budget=budget)
-        serializer = BudgetAccessSerializer(budgetAccess, many=True)
-        return Response(serializer.data)
-
-    # TODO: change pk to slug
-    def deleteBudgetAccess(self, request, budgetID=None, username=None):
-        self.request.user = self.request.session.get('user_id')
-        budget = get_object_or_404(Budget, pk=budgetID)
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
-
-        if not access.has_permission('remove_admin_access') or not access.has_permission('remove_user_access'):
-            return Response({'error': 'You do not have permission to delete access to this budget.'}, status=status.HTTP_403_FORBIDDEN)
-
-        user_ID, user_email = getUserID(username, None)
-
-        try:
-            budgetAccess = BudgetAccess.objects.filter(user=user_ID, budget=budget).first()
-            if not budgetAccess:
-                return Response({'error': 'User does not have access to this budget.'}, status=status.HTTP_400_BAD_REQUEST)
-            if budgetAccess.accessLevel == 'owner':
-                return Response({'error': 'Cannot delete owner access level.'}, status=status.HTTP_400_BAD_REQUEST)
-            elif budgetAccess.accessLevel == 'admin' and not access.has_permission('remove_admin_access'):
-                return Response({'error': 'You do not have permission to delete admin access level.'}, status=status.HTTP_403_FORBIDDEN)
-            budgetAccess.delete()
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({'message': 'User access deleted successfully.'})
-
-    # TODO: kanske byta namn på denna till invite_user
+    
     def addBudgetAccess(self, request, pk=None):
         self.request.user = self.request.session.get('user_id')
         budget = get_object_or_404(Budget, pk=pk)
@@ -219,10 +179,64 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    
         return Response({'message': 'User invited successfully.'})
 
-class BudgetAccessAccept(viewsets.ModelViewSet):
+    def listBudgetAccessByUser(self, request, user_id=None):
+        # TODO: ändra till slug
+        user = user_id
+        if user != request.session.get('user_id'):
+            return Response({'error': 'You do not have permission to view that users access.'}, status=status.HTTP_403_FORBIDDEN)
+        budgetAccess = BudgetAccess.objects.filter(user=user)
+        serializer = BudgetAccessSerializer(budgetAccess, many=True)
+
+        print(serializer.data)
+        return Response(serializer.data)
+
+    def listBudgetAccessByBudget(self, request, budget_id=None):
+        request.user = request.session.get('user_id')
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget_id)
+        if not access.has_permission('view_budget_access'):
+            return Response({'error': 'You do not have permission to view access to this budget.'}, status=status.HTTP_403_FORBIDDEN)
+        budget = Budget.objects.get(id=budget_id)
+        budgetAccess = BudgetAccess.objects.filter(budget=budget)
+        serializer = BudgetAccessSerializer(budgetAccess, many=True)
+        return Response(serializer.data)
+    
+    #TODO: Behöver mer checks för om du försöker ändra till admin
+    def update(self, request, *args, **kwargs):
+        self.request.user = self.request.session.get('user_id')
+        instance = self.get_object()
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        if not access.has_permission('edit_budget_access'):
+            return Response({'error': 'You do not have permission to edit this budget access.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+    
+    # TODO: change pk to slug
+    def deleteBudgetAccess(self, request, budgetID=None, username=None):
+        self.request.user = self.request.session.get('user_id')
+        budget = get_object_or_404(Budget, pk=budgetID)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
+
+        if not access.has_permission('remove_admin_access') or not access.has_permission('remove_user_access'):
+            return Response({'error': 'You do not have permission to delete access to this budget.'}, status=status.HTTP_403_FORBIDDEN)
+
+        user_ID, user_email = getUserID(username, None)
+
+        try:
+            budgetAccess = BudgetAccess.objects.filter(user=user_ID, budget=budget).first()
+            if not budgetAccess:
+                return Response({'error': 'User does not have access to this budget.'}, status=status.HTTP_400_BAD_REQUEST)
+            if budgetAccess.accessLevel == 'owner':
+                return Response({'error': 'Cannot delete owner access level.'}, status=status.HTTP_400_BAD_REQUEST)
+            elif budgetAccess.accessLevel == 'admin' and not access.has_permission('remove_admin_access'):
+                return Response({'error': 'You do not have permission to delete admin access level.'}, status=status.HTTP_403_FORBIDDEN)
+            budgetAccess.delete()
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'message': 'User access deleted successfully.'})
+    
+class BudgetInvitationAcceptViewSet(viewsets.ModelViewSet):
     queryset = BudgetAccess.objects.all()
     serializer_class = BudgetAccessSerializer
 
