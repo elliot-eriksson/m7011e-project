@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from .models import Transaction
 from .serializers import TransactionSerializer
 from budget_service.auth_service import AuthService
-from budget_service.budget.models import BudgetAccess
+from budget.models import BudgetAccess
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
