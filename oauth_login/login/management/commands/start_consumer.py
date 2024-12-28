@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 import pika
 import json
-from login.consumer import user_lookup  # Import the user_lookup function from consumer.py
+from login.consumer import user_lookup, process_oauth2_validation  # Import the user_lookup function from consumer.py
 
 class Command(BaseCommand):
     help = 'Start the RabbitMQ consumer for user lookup'
@@ -15,8 +15,11 @@ class Command(BaseCommand):
 
         # Declare queues
         channel.queue_declare(queue='user_lookup')
+        channel.queue_declare(queue='token_validation_queue')
+        channel.queue_declare(queue='token_result_queue')
 
         # Start consuming messages from the 'user_lookup' queue
         channel.basic_consume(queue='user_lookup', on_message_callback=user_lookup, auto_ack=True)
+        channel.basic_consume(queue='token_validation_queue', on_message_callback=process_oauth2_validation, auto_ack=True)
         print("Waiting for messages. To exit press CTRL+C")
         channel.start_consuming()

@@ -52,7 +52,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',  
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'budget_service.middleware.DebugMiddleware',  # Add this line
 ]
 
 ROOT_URLCONF = 'budget_service.urls'
@@ -128,7 +129,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_SERVICE_URL = 'http://127.0.0.1:8000'
+AUTH_SERVICE_URL = 'http://127.0.0.1:8001'
 
 # OAuth Toolkit Settings
 # OAUTH2_PROVIDER = {
@@ -140,9 +141,9 @@ AUTH_SERVICE_URL = 'http://127.0.0.1:8000'
 # }
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',  # Optional if using custom validation
-    )
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'rest_framework.authentication.TokenAuthentication',  # Optional if using custom validation
+    # )
     # 'DEFAULT_PERMISSION_CLASSES': (
     #     'rest_framework.permissions.IsAuthenticated',
     #     )

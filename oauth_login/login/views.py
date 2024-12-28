@@ -14,7 +14,7 @@ from oauth2_provider.views import IntrospectTokenView
 from django.views.decorators.csrf import csrf_exempt
 from oauth2_provider.models import get_access_token_model
 from django.core.exceptions import ObjectDoesNotExist
-from oauth2_provider.views import TokenViewMixin
+# from oauth2_provider.views import TokenViewMixin
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from rest_framework.authentication import TokenAuthentication
 import json
@@ -87,7 +87,7 @@ class CustomIntrospectToken(IntrospectTokenView):
                 token_obj = get_access_token_model().objects.get(token_checksum=token_checksum)
                 json_data["user_id"] = token_obj.user.id
                 print('json_data with user_id', json_data)
-                publish('token_introspected', json_data)
+                publish('token.validated', json_data, 'token_validation_queue')
             else:
                 json_data["user_id"] = None
         

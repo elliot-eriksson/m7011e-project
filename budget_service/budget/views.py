@@ -25,6 +25,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     def dispatch(self, request, *args, **kwargs):
         print("Dispatching request for token validation.")
+        print(f"Request: {request}")
         request = AuthService.validate_token(request)
         return super().dispatch(request, *args, **kwargs)
 
@@ -37,6 +38,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
         return Budget.objects.filter(owner=self.request.user)
 
     def list(self, request, *args, **kwargs):
+        print('listing budgets')
         print(f"User ID: {request.session.get('user_id')}")
         request.user = request.session.get('user_id')
         
