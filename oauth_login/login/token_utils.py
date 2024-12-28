@@ -2,6 +2,8 @@ from datetime import datetime
 # from oauth2_provider.models import AccessToken
 
 from oauth2_provider.models import get_access_token_model
+from django.utils.timezone import now
+
 
 def validate_token(token2):
     try:
@@ -23,7 +25,7 @@ def validate_token(token2):
 
         # access_token = AccessToken.objects.get(token=token)
         print("Access token found:", access_token)
-        if access_token.expires > datetime.now() and not access_token.is_revoked:
+        if access_token.expires > now():
             return {
                 "valid": True,
                 "active": True,

@@ -63,4 +63,5 @@ def process_oauth2_validation(ch, method, properites, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         return
     result = validate_token(token)
-    publish("token_validation_response",result)
+    print("Token validation result:", result)
+    publish('token.validated',result, 'token_result_queue')

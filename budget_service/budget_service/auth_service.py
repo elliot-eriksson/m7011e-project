@@ -27,13 +27,14 @@ class AuthService:
             print("message: ", message)
 
             publish('token.validate', message, 'token_validation_queue')
-            for _ in range(10):
-                print("Waiting for response...")
+            for _ in range(100):
+                # print("Waiting for response...")
                 method_frame, properties, body = channel.basic_get(queue='token_result_queue', auto_ack=True)
                 if body:
                     response = json.loads(body)
                     print("Response received:", response)
                     # user_id_response = response.get('valid')
+            time.sleep(0.5)  # Wait before checking again (polling)
             return response
             # return {"valid": True, "message": "Token sent for validation"}
         except Exception as e:
