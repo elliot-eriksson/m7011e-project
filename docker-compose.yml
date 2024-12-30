@@ -6,7 +6,7 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - budget_volume:/app
+      - ./budget_service:/app
 
   email_service:
     build:
@@ -15,7 +15,7 @@ services:
     ports:
       - "8003:8003"
     volumes:
-      - email_volume:/app
+      - ./email_service:/app
 
   oauth_login:
     build:
@@ -24,9 +24,4 @@ services:
     ports:
       - "8001:8001"
     volumes:
-      - oauth_volume:/app
-
-volumes:
-  budget_volume:
-  email_volume:
-  oauth_volume:
+      - ./oauth_login:/app
