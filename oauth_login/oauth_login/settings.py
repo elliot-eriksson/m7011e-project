@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # 'login.apps.LoginConfig',
     'corsheaders',
     'login',
+    'userSettings',
 ]
 # OAuth Toolkit Settings
 OAUTH2_PROVIDER = {
