@@ -15,9 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from oauth2_provider.models import get_access_token_model
 from django.core.exceptions import ObjectDoesNotExist
 # from oauth2_provider.views import TokenViewMixin
-from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import AllowAny
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, OAuth2Authentication
+from rest_framework.permissions import AllowAny, IsAuthenticated
 import json
 
 from .producer import publish
@@ -55,8 +54,8 @@ class UserDeleteView(APIView):
     Only authenticated users can delete their own account, or an admin can delete any account.
     """
 
-    authentication_classes = [TokenAuthentication]  # Use OAuth2 Token authentication
-    permission_classes = [TokenHasReadWriteScope] 
+    authentication_classes = [OAuth2Authentication]  # Use OAuth2 Token authentication
+    permission_classes = [IsAuthenticated]  # Only authenticated users can delete their account
 
     def delete(self, request, username):
         try:
@@ -104,8 +103,8 @@ class PasswordUpdateView(APIView):
     A view for updating the authenticated user's password.
     Only the user themselves can update their own password.
     """
-    authentication_classes = [TokenAuthentication]  # Use OAuth2 Token authentication
-    permission_classes = [TokenHasReadWriteScope] 
+    authentication_classes = [OAuth2Authentication]  # Use OAuth2 Token authentication
+    permission_classes = [IsAuthenticated]  
 
     def post(self, request):
         user = request.user  # Get the authenticated user
