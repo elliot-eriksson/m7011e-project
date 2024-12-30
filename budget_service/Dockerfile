@@ -15,4 +15,6 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8002
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8002"]
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8002"]
+CMD ["/bin/sh", "-c", "python manage.py runserver 0.0.0.0:8002 & python ./budget/consumer.py"]
+# CMD ["python", "./budget/consumer.py"] 

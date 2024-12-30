@@ -6,18 +6,7 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - ./budget_service/db.sqlite3:/budget_service/db.sqlite3
-    # environment:
-    #   - DATABASE_URL=sqlite:///app/budget_service/db.sqlite3
-
-  consumer_budget:
-    build:
-      context: ./budget_service
-      dockerfile: Dockerfile.consumer
-    volumes:
-      - ./budget_service/db.sqlite3:/budget_service/db.sqlite3'
-    # environment:
-    #   - DATABASE_URL=sqlite:///app/budget_service/db.sqlite3
+      - budget_volume:/app
 
   email_service:
     build:
@@ -26,18 +15,7 @@ services:
     ports:
       - "8003:8003"
     volumes:
-      - ./email_service/db.sqlite3:/email_service/db.sqlite3
-    # environment:
-    #   - DATABASE_URL=sqlite:///app/email_service/db.sqlite3
-
-  consumer_email:
-    build:
-      context: ./email_service
-      dockerfile: Dockerfile.consumer
-    volumes:
-      - ./email_service/db.sqlite3:/email_service/db.sqlite3'
-    # environment:
-    #   - DATABASE_URL=sqlite:///app/email_service/db.sqlite3
+      - email_volume:/app
 
   oauth_login:
     build:
@@ -46,17 +24,9 @@ services:
     ports:
       - "8001:8001"
     volumes:
-      - ./oauth_login/db.sqlite3:/oauth_login/db.sqlite3
-    # environment:
-    #   - DATABASE_URL=sqlite:///app/oauth_login/db.sqlite3
+      - oauth_volume:/app
 
-  consumer_oauth:
-    build:
-      context: ./oauth_login
-      dockerfile: Dockerfile.consumer
-    volumes:
-      - ./oauth_login/db.sqlite3:/oauth_login/db.sqlite3
-    # environment:
-    #   - DATABASE_URL=sqlite:///app/oauth_login/db.sqlite3
 volumes:
-  app:
+  budget_volume:
+  email_volume:
+  oauth_volume:

@@ -17,6 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 # from oauth2_provider.views import TokenViewMixin
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import AllowAny
 import json
 
 from .producer import publish
@@ -34,7 +35,11 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # TODO:  behöver testas
 class UserRegistration(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
+        print('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+        print('request.data', request.data)
         data = request.data
         serializer = UserRegistrationSerializer(data=data)
         if serializer.is_valid():

@@ -29,10 +29,10 @@ class BudgetViewSet(viewsets.ModelViewSet):
         request = AuthService.validate_token(request)
         return super().dispatch(request, *args, **kwargs)
 
-    def get_queryset(self, request):
+    def get_queryset(self):
         print('getting queryset')
         # self.request.user = self.request.user_info.get('user_id')
-        request.user = request.session.get('user_id')
+        self.request.user = self.request.session.get('user_id')
         print(f"User: {self.request.user}")
         print(f"Budgets for user: {Budget.objects.filter(owner=self.request.user)}")
         return Budget.objects.filter(owner=self.request.user)

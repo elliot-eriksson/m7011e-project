@@ -14,4 +14,5 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8003
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8003"]
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8003"]
+CMD ["/bin/sh", "-c", "python manage.py runserver 0.0.0.0:8003 & python manage.py start_consumer"]
