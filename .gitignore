@@ -1,3 +1,9 @@
 #Ignore all venv directiories regardess of their location
 **/venv/
 .vscode/
+**/__pycache__/
+*.pyc
+*.pyo
+/__pycache__/
+__pycache__/
+.env

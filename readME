@@ -1,27 +1,92 @@
 ### TODO
+L låg prio
+M medium
+H hög
 ### 1. Transaktioner
-- plus och minus transaktioner
--
+- plus och minus transaktioner (klar)
+- Edge cases (0/- kanske skicka mail?) L
 ### 2. Budget --> flera personer (min 1) many to many relation
+    Går att skapa en budget -> du blir owner
+    Går att bjuda in personer -> skickas mail till inbjudna
+
 
 ### 2.b roller : owner, admin, viewer, memeber/user
     owner --> alla
     admin --> memeber/userm, viewer
 
+    Löst via model för access 
+
+
+
 ### 3. User pages 
-    show all budgets users have permission for
+    Settings för (one to one) H/M 
+    show all budgets users have permission for (typ klar) 
+
+    Finns logik för att hämta alla budgets en användare har behörighet till 
+    (men ska nog ändra så att vi kollar om de har accepterat budgeten också )
+
+    
 
 ### 4. Email service / Notifications service barebone
-
+    Email service finns (kanske behöver kolla på CRUD)
 
 ### 5. Authentication / session management (JWT)
+    pretty much done, might need some future changes.
+    Such as cashing token after authentication to limit calls to auth server
+
+    2FA (google?)
+
+### 6. Ensure data integrity
+    Använd consumer and producers för att fixa så att tex om en användare deletas kanske dess budgetar också ska försvinna
+    dvs virtual forign keys. (ej klart)
+    
 
 
-### 6. Summary and graphs
+### 7. Summary and graphs
 
+### 8. Unit-testing
+    M
 
 ### Feature 
     Exceses money goes to piggybank --> time to acheived sum
 
 ### IF TIME 
 Frontend 
+
+
+Grade
+
+o get a grade 3
+
+    Back end
+        Database
+            You must use a some database (SQLite, MySQL, PostGres)                          SQLite
+            Must have the following relations 
+            one to one                                                                      Saknas
+            one to many                                                                     Har
+            many to many                                                                    Har
+            (if using a relational database) Must be a 3NF compliant                        Har
+        API's
+            Must have CRUD operations for all the tables                                    Tror vi har (Email behöver går genom)
+        Authentication
+            Support the creation of users using email and password                          Går inte att skapa tror jag(dubbel kolla)
+            Use Basic Authentication, use username password to authenticate API calls       Klar
+        Authorization
+            Use Access control with at least three different roles                          Typ klar (se till att den följs)
+            Ex: Regular User, Admin, Super User                                             Egen så klar
+
+Additional work to get grade 4
+
+    Integrate third-party packages that add external services                               Email finns så klar
+        Emailing OR Storage to S3 for user file uploads OR
+        Adding social login
+    Use advanced authentication
+    OAUTH or JWT                                                                            OAUTH så klar
+    Add Automatic Testing                                                           
+    Full test 1 module in your project                                                      Behöver göras
+
+Additional work to get grade 5
+
+Demonstrate Micro Service Architecture                                                      Tror vi gör det med consumer and producers samt egen databas
+Demonstrate modern authentication techniques (2FA for example)                              behövs fixas
+ 

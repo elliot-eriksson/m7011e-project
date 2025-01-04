@@ -1,5 +1,5 @@
 """
-URL configuration for email_service project.
+URL configuration for oauth_login project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/
@@ -19,5 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('send_email.urls')),
+    path('api/', include('login.urls')),
+    # path('custom_introspect/', CustomTokenIntrospectionView.as_view() , name='introspect'),
+    path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]

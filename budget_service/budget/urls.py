@@ -7,13 +7,16 @@ budget_detail = BudgetViewSet.as_view({'get': 'retrieve', 'put': 'update', 'dele
 
 # BudgetAccessViewSet URLs
 budget_access_list = BudgetAccessViewSet.as_view({'get': 'list', 'post': 'create'})
-budget_access_detail = BudgetAccessViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})
+budget_access_detail = BudgetAccessViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy', 'post': 'addBudgetAccess'})
 budget_access_by_user = BudgetAccessViewSet.as_view({'get': 'listBudgetAccessByUser'})
 budget_access_by_budget = BudgetAccessViewSet.as_view({'get': 'listBudgetAccessByBudget'})
+
+budget_accept_invitation = BudgetInvitationAcceptViewSet.as_view({'get': 'accept_invitation'})
 
 urlpatterns = [
     path('budgets/', budget_list, name='budget-list'),
     path('budgets/<int:pk>/', budget_detail, name='budget-detail'),
+    path('invitations/accept/<str:token>', budget_accept_invitation, name='budget_accept_invitation'),
 
     path('budget-access/', budget_access_list, name='budget-access-list'),
     path('budget-access/<int:pk>/', budget_access_detail, name='budget-access-detail'),
