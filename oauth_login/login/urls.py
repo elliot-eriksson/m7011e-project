@@ -11,5 +11,8 @@ urlpatterns = [
     path('users/<int:pk>/', UserDetail.as_view(), name='user-detail'),
     path('custom_introspect/', CustomIntrospectToken.as_view() , name='custom-introspect'),
     path('g2fa/<str:action>/', G2FAView.as_view(), name='g2fa_action'),
+    path('login/', UserLoginView.as_view(), name='login'),
+    # path('logout/', UserLogoutView.as_view(), name='logout'),
+    path('verify_otp/', VerifyOTPView.as_view(), name='verify_otp'),
    
 ]

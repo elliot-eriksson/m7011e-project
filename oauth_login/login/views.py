@@ -1,27 +1,23 @@
 import base64
 import hashlib
-from http.client import HTTPResponse
+
 from io import BytesIO
 
 from .models import UserG2FA
 from rest_framework import generics
 from django.contrib.auth.models import User
 from .serializers import PasswordChangeSerializer, UserRegistrationSerializer, UserSerializer
-from oauth2_provider.models import AccessToken
 from django.http import JsonResponse
-from django.utils.timezone import now
-from django.views import View
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from oauth2_provider.views import IntrospectTokenView
-from django.views.decorators.csrf import csrf_exempt
 from oauth2_provider.models import get_access_token_model
-from django.core.exceptions import ObjectDoesNotExist
-# from oauth2_provider.views import TokenViewMixin
-from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, OAuth2Authentication
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import authenticate
+from oauth2_provider.oauth2_backends import get_oauthlib_core
+
 
 import json, pyotp, qrcode
 
@@ -76,6 +72,13 @@ class UserDeleteView(APIView):
 
         return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
+    # TODO: kan ändras till att bara användaren kan radera sitt konto
+    # def delete(self):
+    #     user = user.request
+    #     user.delete()
+    #     return Response({"detail": "User deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+#TODO: ska tas bort (används inte) finns url i urls.py
 class CustomIntrospectToken(IntrospectTokenView):
 
     def post(self, request, *args, **kwargs):
@@ -177,7 +180,7 @@ class G2FAView(APIView):
             if not user_g2fa.g2fa_enabled:
                 user_g2fa.g2fa_enabled = True
                 user_g2fa.save()
-                return JsonResponse({'detail': 'OTP verified!.'}, status=200)
+            return JsonResponse({'detail': 'OTP verified!.'}, status=200)
         else:
             return JsonResponse({'detail': 'Invalid OTP.'}, status=400)
         
@@ -185,3 +188,95 @@ class G2FAView(APIView):
         user_g2fa = UserG2FA.objects.get(user=request.user)
         user_g2fa.generate_recovery_codes()
         return JsonResponse({'recovery_codes': user_g2fa.recovery_codes}, status=200)
+
+# TODO: not working problems with the token 
+class UserLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        print('request.data', request.data)
+        data = request.data
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return Response({'detail': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = authenticate(username=username, password=password)
+
+        if not user:
+            return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if hasattr(user, 'g2fa') and user.g2fa.g2fa_enabled:
+            return Response(
+                {"message": "2FA code required.", "2fa_required": True, "2fa_pending_user_id": user.id},
+                status=status.HTTP_200_OK
+            )
+        
+        return self._generate_token_response(request, user)
+    
+    def _generate_token_response(self, request, user):
+        
+        oauthlib_core = get_oauthlib_core()
+        request._request.POST = request.data
+
+        # Generate the token using the password grant type
+        token_data, headers = oauthlib_core.create_token_response(
+            request=request._request,
+            scope="read write",
+            credentials={
+                "user": user,
+                "client_id": request.data.get("client_id"),
+                "grant_type": "password",
+            }
+        )
+
+        if "error" in token_data:
+            return Response(token_data, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(token_data, status=status.HTTP_200_OK)
+
+# TODO: not working problems with the token
+class VerifyOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        
+        if not request.data.get('username'):
+            return Response({'detail': 'Username is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        username = request.data.get('username')
+        user = User.objects.get(username=username)
+
+        otp = request.data.get('otp')
+        if not otp:
+            return Response({'detail': 'OTP is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_g2fa = UserG2FA.objects.get(user=user)
+        totp = pyotp.TOTP(user_g2fa.g2fa_secret)
+        print('otp', otp)
+        print('totp', totp)
+
+        if totp.verify(otp):
+            print('otp verified')
+            return self._generate_token_response(request, user)
+        else:
+            return Response({'detail': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def _generate_token_response(self, request, user):
+        oauthlib_core = get_oauthlib_core()
+        request._request.POST = request.data  # Ensure data is accessible to OAuth2 flow
+        token_data, headers = oauthlib_core.create_token_response(
+            request=request._request,
+            credentials={
+                "user": user,
+                "client_id": request.data.get("client_id"),
+                "grant_type": "password",
+            }
+        )
+
+        if "error" in token_data:
+            return Response(token_data, status=status.HTTP_400_BAD_REQUEST)
+
+        # Return token with proper headers
+        return Response(token_data, status=status.HTTP_200_OK, headers=headers)
