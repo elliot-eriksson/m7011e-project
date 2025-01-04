@@ -1,5 +1,7 @@
 from arrow import now
 import pika,json
+import sys
+import signal
 
 params = pika.URLParameters('amqps://bdsnvese:s3U-C0irT91fkjV9VXgYjA5Uo0bYhPPQ@hawk.rmq.cloudamqp.com/bdsnvese')
 params.heartbeat = 60  # Sends heartbeats every 60 seconds
@@ -29,3 +31,12 @@ print('Consuming validation results...\n Exit with CTRL+C')
 channel.start_consuming()       
 
 connection.close()    
+
+def graceful_shutdown(signum, frame):
+    print("Shutting down gracefully...")
+    # Perform cleanup here (e.g., closing connections, saving state)
+    sys.exit(0)
+
+# Attach signal handlers
+signal.signal(signal.SIGTERM, graceful_shutdown)
+signal.signal(signal.SIGINT, graceful_shutdown)

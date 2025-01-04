@@ -7,7 +7,7 @@ connection = pika.BlockingConnection(params)
 channel = connection.channel()
 
 channel.queue_declare(queue='user_lookup_response')
-
+channel.queue_declare(queue='token_result_queue')
 
 #token_validation_queue
 def publish(method, body, routing_key):

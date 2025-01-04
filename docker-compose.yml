@@ -6,14 +6,7 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      - ./budget_service/db.sqlite:/app/budget_service/db.sqlite
-
-  consumer_budget:
-    build:
-      context: ./budget_service
-      dockerfile: Dockerfile.consumer
-    volumes:
-      - ./budget_service/db.sqlite:/app/budget_service/db.sqlite
+      - ./budget_service:/app
 
   email_service:
     build:
@@ -22,14 +15,7 @@ services:
     ports:
       - "8003:8003"
     volumes:
-      - ./email_service/db.sqlite:/app/email_service/db.sqlite
-
-  consumer_email:
-    build:
-      context: ./email_service
-      dockerfile: Dockerfile.consumer
-    volumes:
-      - ./email_service/db.sqlite:/app/email_service/db.sqlite
+      - ./email_service:/app
 
   oauth_login:
     build:
@@ -38,11 +24,4 @@ services:
     ports:
       - "8001:8001"
     volumes:
-      - ./oauth_login/db.sqlite:/app/oauth_login/db.sqlite
-
-  consumer_oauth:
-    build:
-      context: ./oauth_login
-      dockerfile: Dockerfile.consumer
-    volumes:
-      - ./oauth_login/db.sqlite:/app/oauth_login/db.sqlite
+      - ./oauth_login:/app

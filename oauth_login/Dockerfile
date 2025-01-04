@@ -10,6 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python manage.py makemigrations
 RUN python manage.py migrate
 
+ENV PYTHONUNBUFFERED=1
+
 EXPOSE 8001
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"] && ["python", "manage.py", "start_consumer"]
+CMD ["/bin/sh", "-c", "python manage.py runserver 0.0.0.0:8001 & python manage.py start_consumer"]

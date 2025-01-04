@@ -1,6 +1,8 @@
 import json
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+from .token_utils import validate_token
+from .producer import publish
 # from login.views import UserDetail  # Adjust the import based on your actual model location
 
 def user_lookup(channel, method, properties, body):
@@ -50,3 +52,16 @@ def user_lookup(channel, method, properties, body):
             body=response_body
         )
         channel.basic_ack(delivery_tag=method.delivery_tag)
+
+def process_oauth2_validation(ch, method, properites, body):
+    print("Processing token validation request in oauth")
+    message = json.loads(body)
+    token = message.get("token")
+
+    if not token:
+        print("No token provided in message.")
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
+    result = validate_token(token)
+    print("Token validation result:", result)
+    publish('token.validated',result, 'token_result_queue')
