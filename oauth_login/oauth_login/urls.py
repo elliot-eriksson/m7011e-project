@@ -20,6 +20,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('login.urls')),
+    path('api/', include('userSettings.urls')),
     # path('custom_introspect/', CustomTokenIntrospectionView.as_view() , name='introspect'),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
