@@ -1,5 +1,9 @@
+import base64
 import hashlib
+from http.client import HTTPResponse
+from io import BytesIO
 
+from .models import UserG2FA
 from rest_framework import generics
 from django.contrib.auth.models import User
 from .serializers import PasswordChangeSerializer, UserRegistrationSerializer, UserSerializer
@@ -17,7 +21,9 @@ from django.core.exceptions import ObjectDoesNotExist
 # from oauth2_provider.views import TokenViewMixin
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, OAuth2Authentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
-import json
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+import json, pyotp, qrcode
 
 from .producer import publish
 
@@ -117,3 +123,65 @@ class PasswordUpdateView(APIView):
             return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class G2FAView(APIView):
+    authentication_classes = [OAuth2Authentication] 
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, action):
+        if action == 'setup':
+            return self.setup_g2fa(request)
+        elif action == 'recovery':
+            return self.generate_recovery_codes(request)
+        else:
+            return JsonResponse({'detail': 'Invalid action.'}, status=400)
+       
+    def post(self, request, action):
+        if action == 'verify':
+            return self.verify_otp(request)
+        else:
+            return JsonResponse({'detail': 'Invalid action.'}, status=400)
+        
+    def setup_g2fa(self, request):
+        print('setup_g2fa')
+        user_g2fa, _ = UserG2FA.objects.get_or_create(user=request.user)
+
+        if not user_g2fa.g2fa_secret:
+            user_g2fa.generate_secret()
+        
+        totp = pyotp.TOTP(user_g2fa.g2fa_secret)
+        qr_url = totp.provisioning_uri(name=request.user.email, issuer_name='BudgetBuddy')
+
+        qr = qrcode.make(qr_url)
+        buffer = BytesIO()
+        qr.save(buffer, format='PNG')
+        buffer.seek(0)
+
+        qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+        return JsonResponse({
+            "message": "G2FA setup QR code generated.",
+            "qr_code_base64": f"data:image/png;base64,{qr_base64}"
+        })
+    
+    def verify_otp(self, request):
+        user_g2fa = UserG2FA.objects.get(user=request.user)
+        otp = request.data.get('otp')
+
+        if not user_g2fa.g2fa_secret:
+            return JsonResponse({'detail': '2FA not enabled.'}, status=400)
+        
+        totp = pyotp.TOTP(user_g2fa.g2fa_secret)
+        print('otp', otp)
+        print('totp', totp)
+        if totp.verify(otp):
+            if not user_g2fa.g2fa_enabled:
+                user_g2fa.g2fa_enabled = True
+                user_g2fa.save()
+                return JsonResponse({'detail': 'OTP verified!.'}, status=200)
+        else:
+            return JsonResponse({'detail': 'Invalid OTP.'}, status=400)
+        
+    def generate_recovery_codes(self, request):
+        user_g2fa = UserG2FA.objects.get(user=request.user)
+        user_g2fa.generate_recovery_codes()
+        return JsonResponse({'recovery_codes': user_g2fa.recovery_codes}, status=200)
