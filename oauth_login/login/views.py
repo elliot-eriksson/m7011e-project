@@ -3,6 +3,8 @@ import hashlib
 
 from io import BytesIO
 
+from oauth_login.settings import OAUTH2_PROVIDER
+
 from .models import UserG2FA
 from rest_framework import generics
 from django.contrib.auth.models import User
@@ -17,7 +19,10 @@ from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from oauth2_provider.oauth2_backends import get_oauthlib_core
-
+from django.utils.timezone import now
+from datetime import timedelta
+from oauth2_provider.models import AccessToken, RefreshToken, Application
+from oauthlib import common
 
 import json, pyotp, qrcode
 
@@ -34,7 +39,7 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-# TODO:  behöver testas
+
 class UserRegistration(APIView):
     permission_classes = [AllowAny]
 
@@ -49,7 +54,6 @@ class UserRegistration(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# TODO:  behöver testas, kan vara problem med authentiseringen.
 class UserDeleteView(APIView):
     """
     A view for deleting a user.
@@ -189,12 +193,10 @@ class G2FAView(APIView):
         user_g2fa.generate_recovery_codes()
         return JsonResponse({'recovery_codes': user_g2fa.recovery_codes}, status=200)
 
-# TODO: not working problems with the token 
-class UserLoginView(APIView):
+class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print('request.data', request.data)
         data = request.data
         username = data.get('username')
         password = data.get('password')
@@ -207,34 +209,49 @@ class UserLoginView(APIView):
         if not user:
             return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
         
+        application = Application.objects.filter(client_id='Zx6bjPzYlzArXlKhDbIvNWoIk5LsmZVdcXSpBrSV').first()
+        print('application', application)
+
+        print('token expire', OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
+        print('now', now())
+
+        expires = now() + timedelta(seconds=OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
+        access_token = AccessToken(
+            user=user,
+            scope='read write groups',
+            expires=expires,
+            token=common.generate_token(),
+            application=application
+        )
+        access_token.save()
+        refresh_token = RefreshToken(
+            user=user,
+            token=common.generate_token(),
+            application=application,
+            access_token=access_token
+        )
+        refresh_token.save()
+
+
         if hasattr(user, 'g2fa') and user.g2fa.g2fa_enabled:
             return Response(
-                {"message": "2FA code required.", "2fa_required": True, "2fa_pending_user_id": user.id},
+                {"message": "2FA code required.", "2fa_required": True, "2fa_pending_user": username},
                 status=status.HTTP_200_OK
             )
         
-        return self._generate_token_response(request, user)
-    
-    def _generate_token_response(self, request, user):
+        resp_data = {
+            'token': {
+                'access_token': access_token.token,
+                'expires_in': OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'],
+                'token_type': 'Bearer',
+                'scope': access_token.scope,
+                'refresh_token': refresh_token.token
+            },
+            'user_id': user.id
+        }
         
-        oauthlib_core = get_oauthlib_core()
-        request._request.POST = request.data
+        return Response(resp_data, status=status.HTTP_200_OK, headers={})
 
-        # Generate the token using the password grant type
-        token_data, headers = oauthlib_core.create_token_response(
-            request=request._request,
-            scope="read write",
-            credentials={
-                "user": user,
-                "client_id": request.data.get("client_id"),
-                "grant_type": "password",
-            }
-        )
-
-        if "error" in token_data:
-            return Response(token_data, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(token_data, status=status.HTTP_200_OK)
 
 # TODO: not working problems with the token
 class VerifyOTPView(APIView):
@@ -259,24 +276,24 @@ class VerifyOTPView(APIView):
 
         if totp.verify(otp):
             print('otp verified')
-            return self._generate_token_response(request, user)
+            access_token = AccessToken.objects.filter(user=user).last()
+            print('access_token expires', access_token.expires)
+            if access_token.expires < now():
+                refresh_token
+            refresh_token = RefreshToken.objects.filter(user=user).first()
+            print('access_token', access_token)
+        
+            resp_data = {
+                'token': {
+                    'access_token': access_token.token,
+                    'expires_in': OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'],
+                    'token_type': 'Bearer',
+                    'scope': access_token.scope,
+                    'refresh_token': refresh_token.token
+                },
+                'user_id': user.id
+            }
+            return Response(resp_data, status=status.HTTP_200_OK, headers={})
+            
         else:
             return Response({'detail': 'Invalid OTP.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-    def _generate_token_response(self, request, user):
-        oauthlib_core = get_oauthlib_core()
-        request._request.POST = request.data  # Ensure data is accessible to OAuth2 flow
-        token_data, headers = oauthlib_core.create_token_response(
-            request=request._request,
-            credentials={
-                "user": user,
-                "client_id": request.data.get("client_id"),
-                "grant_type": "password",
-            }
-        )
-
-        if "error" in token_data:
-            return Response(token_data, status=status.HTTP_400_BAD_REQUEST)
-
-        # Return token with proper headers
-        return Response(token_data, status=status.HTTP_200_OK, headers=headers)
