@@ -218,7 +218,7 @@ class LoginView(APIView):
         expires = now() + timedelta(seconds=OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
         access_token = AccessToken(
             user=user,
-            scope='read write groups',
+            scope='read write',
             expires=expires,
             token=common.generate_token(),
             application=application
