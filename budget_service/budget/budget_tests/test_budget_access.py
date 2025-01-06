@@ -7,6 +7,7 @@ from rest_framework import status
 from budget.models import Budget, BudgetAccess, BudgetRole
 
 
+
 class BudgetAccessTest(APITestCase):
 
     def setUp(self):
@@ -156,6 +157,8 @@ class BudgetAccessTest(APITestCase):
 
     # TODO: Behövs en till patch för att test då vi skickar email tror jag Elliot fixar
     # @patch("budget_service.auth_service.AuthService.validate_token")
+    # @patch("budget.services.BudgetAccessService.publish_email_invitation")
+    # @patch("budget_service.user_lookup.getUserID") 
     # def test_budget_access_detail_put(self, mock_validate_token):
     #     mock_validate_token.side_effect = lambda request: request
     #     self.client.force_login(self.owner)
@@ -195,31 +198,26 @@ class BudgetAccessTest(APITestCase):
     #     self.assertEqual(response.status_code, 403)
 
     # TODO: Behövs en till patch för att testa dvs getUSERID Elliot fixar
+
     @patch("budget_service.auth_service.AuthService.validate_token")
-    def test_budget_access_detail_delete(self, mock_validate_token):
+    @patch("budget.views.getUserID") 
+    def test_budget_access_detail_delete(self, mock_getUserID, mock_validate_token):
         mock_validate_token.side_effect = lambda request: request
+        mock_getUserID.return_value = (1, "test@example.com")
+
         self.client.force_login(self.owner)
 
         session = self.client.session
         session['user_id'] = self.owner.id
         session.save()
 
-        
-
-
         response = self.client.delete(
             f"/api/budget-access/delete/{self.budget.id}/{self.owner.username}/",
             content_type="application/json"
         )
-        print(response)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
 
-        response = self.client.delete(
-            f"/api/budget-access/delete/{self.budget.id}/{self.member.username}/",
-            content_type="application/json"
-        )
-
-        self.assertEqual(response.status_code, 204)
+        mock_getUserID.return_value = (2, "test@example.com")
 
         session['user_id'] = self.admin.id
         session.save()
@@ -230,4 +228,13 @@ class BudgetAccessTest(APITestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+        session['user_id'] = self.owner.id
+        session.save()
+
+        response = self.client.delete(
+            f"/api/budget-access/delete/{self.budget.id}/{self.member.username}/",
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
 

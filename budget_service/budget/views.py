@@ -13,6 +13,7 @@ from .models import Budget
 from budget_service.auth_service import AuthService
 from budget_service.user_lookup import getUserID
 from django.utils.crypto import get_random_string
+from .services import BudgetAccessService
 
 # Create your views here.
 class BudgetViewSet(viewsets.ModelViewSet):
@@ -125,9 +126,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
-        print(f"User: {self.request.user}")
         instance = self.get_object()
-        print(f"Instance: {instance}")
         access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
         return Response(BudgetAccessSerializer(access).data)
     
@@ -135,10 +134,6 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         self.request.user = self.request.session.get('user_id')
         budget = get_object_or_404(Budget, pk=budget_id)
         access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
-
-        if not access.has_permission('invite_users'):
-            return Response({'error': 'You do not have permission to invite users.'}, status=status.HTTP_403_FORBIDDEN)
-
 
         username = request.data.get('username')
         email = request.data.get('email')
@@ -150,45 +145,26 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
         )
 
-        if role == BudgetRole.admin and not access.has_permission('invite_user_as_admin'):
-            return Response({'error': 'You do not have permission to invite admins.'}, status=status.HTTP_403_FORBIDDEN)
+        print(f"Role: {role}, Access: {access}")
+        budget_access_service = BudgetAccessService(request)
 
-        if role not in [BudgetRole.admin, BudgetRole.member]:
-            return Response({'error': 'Invalid role.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+        permission_response = budget_access_service.check_budget_access(role, access)
+        print(f"Permission response: {permission_response}")
+        if permission_response:
+            return permission_response
+
         try:
             user_ID, user_email = getUserID(username, email)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        try:
-            budgetAccess = BudgetAccess.objects.filter(user=user_ID, budget=budget).first()
-            if budgetAccess:
-                if budgetAccess.roll == role:
-                    return Response({'error': 'User already has access to this budget.'}, status=status.HTTP_400_BAD_REQUEST)
-                elif access.has_permission('invite_user_as_admin'): 
-                    budgetAccess.roll = role
-                    budgetAccess.save()
-                    return Response({'message': 'User access level updated successfully.'})
-        except Exception as e:
-            pass
-
-        while True:
-            slugToken = get_random_string(length=16, allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-            if not BudgetAccess.objects.filter(slug=slugToken).exists():
-                break
-        payload = {}
-        payload['recipient_email'] = user_email
-        payload['budget_name'] = budget.budgetName
-        payload['role'] = role
-        payload['inviter_name'] = self.request.session.get('username')
-        payload['token'] = slugToken
-
-        try:
-            publish('send.email', payload,'send_email_invitations')
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        print(f"User ID: {user_ID}, User email: {user_email}")
+        
+        access_response = budget_access_service.create_budget_access(access, budget, user_ID, role)
+        print(f"Access response: {access_response}")
+        if access_response:
+            return access_response
+        
+        slugToken = budget_access_service.publish_email_invitation(user_email, budget, role)
 
         try:
             budget_access_data = {
@@ -259,7 +235,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
                 return Response({'error': 'User does not have access to this budget.'}, status=status.HTTP_400_BAD_REQUEST)
             if budgetAccess.accessLevel == 'owner':
                 return Response({'error': 'Cannot delete owner access level.'}, status=status.HTTP_400_BAD_REQUEST)
-            elif budgetAccess.accessLevel == 'admin' and not access.has_permission('remove_admin_access'):
+            elif budgetAccess.accessLevel == 'admin' and not access.has_permission('remove_admin'):
                 return Response({'error': 'You do not have permission to delete admin access level.'}, status=status.HTTP_403_FORBIDDEN)
             budgetAccess.delete()
         except Exception as e:
