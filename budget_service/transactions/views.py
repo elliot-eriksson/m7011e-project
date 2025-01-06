@@ -12,14 +12,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
 
     def dispatch(self, request, *args, **kwargs):
-        print("Dispatching request for token validation.")
+        # print("Dispatching request for token validation.")
         request = AuthService.validate_token(request)
         return super().dispatch(request, *args, **kwargs)
     
     def perform_create(self, request, *args, **kwargs):
     # Always override user from request context
-        print("Performing create")
-        print(self.request.session.get('user_id'), self.request.data['budget'])
+        # print("Performing create")
+        # print(self.request.session.get('user_id'), self.request.data['budget'])
         access = BudgetAccess.objects.get(user=self.request.session.get('user_id'), budget=request.data['budget'])
 
         if not access.has_permission('add_transaction'):
@@ -28,7 +28,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=self.request.session.get('user_id'))
-        print("Transaction created")
+        # print("Transaction created")
         return Response(serializer.data, status=201)
 
     def retrieve(self, request, pk=None):

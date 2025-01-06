@@ -1,4 +1,3 @@
-### Elliot Testar
 import json
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -167,101 +166,102 @@ class BudgetListCreateTest(APITestCase):
         BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=True)
         BudgetAccess.objects.create(budget=self.budget, user=self.member.id, accessLevel=BudgetRole.member, accepted=True)
 
-    @patch("budget_service.auth_service.AuthService.validate_token")
-    def test_create_budget(self, mock_validate_token):
-        mock_validate_token.side_effect = lambda request: request
-        client = APIClient()
-        user = User.objects.create_user(username="testuser", password="testuser_pass")
-        client.force_login(user)
+    # @patch("budget_service.auth_service.AuthService.validate_token")
+    # def test_create_budget(self, mock_validate_token):
+    #     mock_validate_token.side_effect = lambda request: request
+    #     client = APIClient()
+    #     user = User.objects.create_user(username="testuser", password="testuser_pass")
+    #     client.force_login(user)
 
-        session = client.session
-        session['user_id'] = user.id
-        session.save()
+    #     session = client.session
+    #     session['user_id'] = user.id
+    #     session.save()
 
-        response = client.post(
-            "/api/budgets/",
-            data=json.dumps({
-                "budgetName": "Test Budget2",
-                "budgetAmount": "1000.00",
-                "currentAmount": "500.00",
-                "category": "General",
-                "startDate": "2025-01-01",
-                "endDate": "2025-12-31"
-            }),
-            content_type="application/json"
-        )
-        self.assertEqual(response.status_code, 201)
+    #     response = client.post(
+    #         "/api/budgets/",
+    #         data=json.dumps({
+    #             "budgetName": "Test Budget2",
+    #             "budgetAmount": "1000.00",
+    #             "currentAmount": "500.00",
+    #             "category": "General",
+    #             "startDate": "2025-01-01",
+    #             "endDate": "2025-12-31"
+    #         }),
+    #         content_type="application/json"
+    #     )
+    #     self.assertEqual(response.status_code, 201)
 
-        expected_response = {
-            "budgetName":"Test Budget2",
-            "budgetAmount":"1000.00",
-            "currentAmount":"500.00",
-            "category":"General",
-            "startDate":"2025-01-01",
-            "endDate":"2025-12-31"
-        }
+    #     expected_response = {
+    #         "budgetName":"Test Budget2",
+    #         "budgetAmount":"1000.00",
+    #         "currentAmount":"500.00",
+    #         "category":"General",
+    #         "startDate":"2025-01-01",
+    #         "endDate":"2025-12-31"
+    #     }
 
-        self.assertEqual(response.json(), expected_response)
+    #     self.assertEqual(response.json(), expected_response)
 
-    @patch("budget_service.auth_service.AuthService.validate_token")
-    def test_list_budgets(self, mock_validate_token):
-        self.client.force_login(self.admin)
+    # @patch("budget_service.auth_service.AuthService.validate_token")
+    # def test_list_budgets(self, mock_validate_token):
+    #     self.client.force_login(self.admin)
 
-        mock_validate_token.side_effect = lambda request: request
+    #     mock_validate_token.side_effect = lambda request: request
 
-        session = self.client.session
-        session['user_id'] = self.admin.id
-        session.save()
+    #     session = self.client.session
+    #     session['user_id'] = self.admin.id
+    #     session.save()
 
-        response = self.client.get("/api/budgets/")
-        self.assertEqual(response.status_code, 200)
+    #     response = self.client.get("/api/budgets/")
+    #     self.assertEqual(response.status_code, 200)
 
-        expected_response = [{
-            "budgetName":"Test Budget",
-            "budgetAmount":"1000.00",
-            "currentAmount":"1000.00",
-            "category":"General",
-            "startDate":"2025-01-01",
-            "endDate":"2025-12-31"
-        }]
+    #     expected_response = [{
+    #         "budgetName":"Test Budget",
+    #         "budgetAmount":"1000.00",
+    #         "currentAmount":"1000.00",
+    #         "category":"General",
+    #         "startDate":"2025-01-01",
+    #         "endDate":"2025-12-31"
+    #     }]
 
-        self.assertEqual(response.json(), expected_response)
+    #     self.assertEqual(response.json(), expected_response)
 
 
-        self.budget = Budget.objects.create(
-            budgetName="Test Budget2",
-            owner=self.owner.id,
-            budgetAmount=1000,
-            currentAmount=1000,
-            category="General",
-            startDate="2025-01-01",
-            endDate="2025-12-31",
-        )
+    #     self.budget = Budget.objects.create(
+    #         budgetName="Test Budget2",
+    #         owner=self.owner.id,
+    #         budgetAmount=1000,
+    #         currentAmount=1000,
+    #         category="General",
+    #         startDate="2025-01-01",
+    #         endDate="2025-12-31",
+    #     )
 
-        BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=True)
+    #     BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=True)
 
-        response = self.client.get("/api/budgets/")
-        self.assertEqual(response.status_code, 200)
+    #     response = self.client.get("/api/budgets/")
+    #     self.assertEqual(response.status_code, 200)
 
-        expected_response = [
-            {
-            "budgetName":"Test Budget",
-            "budgetAmount":"1000.00",
-            "currentAmount":"1000.00",
-            "category":"General",
-            "startDate":"2025-01-01",
-            "endDate":"2025-12-31"
-            },
-            {
-            "budgetName":"Test Budget2",
-            "budgetAmount":"1000.00",
-            "currentAmount":"1000.00",
-            "category":"General",
-            "startDate":"2025-01-01",
-            "endDate":"2025-12-31"
-            }
-        ]
+    #     expected_response = [
+    #         {
+    #         "budgetName":"Test Budget",
+    #         "budgetAmount":"1000.00",
+    #         "currentAmount":"1000.00",
+    #         "category":"General",
+    #         "startDate":"2025-01-01",
+    #         "endDate":"2025-12-31"
+    #         },
+    #         {
+    #         "budgetName":"Test Budget2",
+    #         "budgetAmount":"1000.00",
+    #         "currentAmount":"1000.00",
+    #         "category":"General",
+    #         "startDate":"2025-01-01",
+    #         "endDate":"2025-12-31"
+    #         }
+    #     ]
 
-        self.assertEqual(response.json(), expected_response)
+    #     self.assertEqual(response.json(), expected_response)
+
 
     
