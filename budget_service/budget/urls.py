@@ -16,14 +16,13 @@ budget_accept_invitation = BudgetInvitationAcceptViewSet.as_view({'get': 'accept
 urlpatterns = [
     path('budgets/', budget_list, name='budget-list'),
     path('budgets/<int:pk>/', budget_detail, name='budget-detail'),
+
     path('invitations/accept/<str:token>', budget_accept_invitation, name='budget_accept_invitation'),
 
     path('budget-access/', budget_access_list, name='budget-access-list'),
     path('budget-access/<int:pk>/', budget_access_detail, name='budget-access-detail'),
     path('budget-access/user/<int:user_id>/', budget_access_by_user, name='budget-access-by-user'),
     path('budget-access/budget/<int:budget_id>/', budget_access_by_budget, name='budget-access-by-budget'),
-
-    # path('user/', UserAPIView.as_view(), name='user-list'),
 
 ]
 

@@ -7,8 +7,6 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-# from .consumer import validate_token_with_auth_service
-import requests
 from django.conf import settings
 from .serializers import *
 from .models import Budget
@@ -34,8 +32,15 @@ class BudgetViewSet(viewsets.ModelViewSet):
         # self.request.user = self.request.user_info.get('user_id')
         self.request.user = self.request.session.get('user_id')
         print(f"User: {self.request.user}")
-        print(f"Budgets for user: {Budget.objects.filter(owner=self.request.user)}")
-        return Budget.objects.filter(owner=self.request.user)
+        access_entries = BudgetAccess.objects.filter(user=self.request.user)
+        print(f"BudgetAccess entries for user {self.request.user}: {access_entries}")
+        # budgets = Budget.objects.filter(owner=self.request.user)
+        budgets = Budget.objects.filter(id__in=[access.budget.id for access in access_entries])
+        print(f"Budgets found: {budgets}")
+
+        # print(f"Budgets for user: {Budget.objects.filter(owner=self.request.user)}")
+        return budgets
+        # return Budget.objects.filter(owner=self.request.user)
 
     def list(self, request, *args, **kwargs):
         print('listing budgets')
@@ -64,10 +69,20 @@ class BudgetViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
         instance = self.get_object()
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance, accepted=True)
         if not access.has_permission('edit_budget'):
             return Response({'error': 'You do not have permission to edit this budget.'}, status=status.HTTP_403_FORBIDDEN)    
-        return super().update(request, *args, **kwargs)
+            # Allow partial updates    
+        try:
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        except Exception as e:
+            print(f"Error: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response(serializer.data)        
+        # return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         self.request.user = self.request.session.get('user_id')
@@ -211,7 +226,13 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
         if not access.has_permission('edit_budget_access'):
             return Response({'error': 'You do not have permission to edit this budget access.'}, status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+        
+        # return super().update(request, *args, **kwargs)
     
     # TODO: change pk to slug
     def deleteBudgetAccess(self, request, budgetID=None, username=None):
