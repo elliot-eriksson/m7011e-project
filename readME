@@ -34,24 +34,18 @@ H hög
     pretty much done, might need some future changes.
     Such as cashing token after authentication to limit calls to auth server
 
-    2FA (google?)
+    2FA done
 
 ### 6. Ensure data integrity
     Använd consumer and producers för att fixa så att tex om en användare deletas kanske dess budgetar också ska försvinna
-    dvs virtual forign keys. (ej klart)
+    dvs virtual forign keys. (klart)
+    how about email?
     
-
-
-### 7. Summary and graphs
 
 ### 8. Unit-testing
     M
 
-### Feature 
-    Exceses money goes to piggybank --> time to acheived sum
 
-### IF TIME 
-Frontend 
 
 
 Grade
@@ -62,17 +56,17 @@ o get a grade 3
         Database
             You must use a some database (SQLite, MySQL, PostGres)                          SQLite
             Must have the following relations 
-            one to one                                                                      Saknas
+            one to one                                                                      har
             one to many                                                                     Har
             many to many                                                                    Har
             (if using a relational database) Must be a 3NF compliant                        Har
         API's
             Must have CRUD operations for all the tables                                    Tror vi har (Email behöver går genom)
         Authentication
-            Support the creation of users using email and password                          Går inte att skapa tror jag(dubbel kolla)
+            Support the creation of users using email and password                          Klar
             Use Basic Authentication, use username password to authenticate API calls       Klar
         Authorization
-            Use Access control with at least three different roles                          Typ klar (se till att den följs)
+            Use Access control with at least three different roles                          Klar
             Ex: Regular User, Admin, Super User                                             Egen så klar
 
 Additional work to get grade 4
@@ -83,10 +77,9 @@ Additional work to get grade 4
     Use advanced authentication
     OAUTH or JWT                                                                            OAUTH så klar
     Add Automatic Testing                                                           
-    Full test 1 module in your project                                                      Behöver göras
-
+    Full test 1 module in your project                                                      klar
 Additional work to get grade 5
 
 Demonstrate Micro Service Architecture                                                      Tror vi gör det med consumer and producers samt egen databas
-Demonstrate modern authentication techniques (2FA for example)                              behövs fixas
+Demonstrate modern authentication techniques (2FA for example)                              Klar
  

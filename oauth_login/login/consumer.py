@@ -65,3 +65,17 @@ def process_oauth2_validation(ch, method, properites, body):
     result = validate_token(token)
     print("Token validation result:", result)
     publish('token.validated',result, 'token_result_queue')
+
+
+def lookupStaffStatus(channel, method, properties, body):
+    message = json.loads(body)
+    userID = message.get("user_id")
+
+    user = User.objects.get(id=userID)
+    is_staff = user.is_staff
+    response_body = json.dumps({"is_staff": is_staff})
+    channel.basic_publish(
+        exchange='',
+        routing_key='staff_lookup_response',
+        body=response_body
+    )

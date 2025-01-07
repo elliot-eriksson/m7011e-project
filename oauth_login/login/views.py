@@ -71,7 +71,13 @@ class UserDeleteView(APIView):
 
         # Check if the current user is either the user being deleted or an admin
         if request.user == user or request.user.is_staff:
-            user.delete()  # Delete the user
+            try:
+                print('user.id', user.id)
+                print('user', user)
+                publish('user.deleted', user.id, 'delete_user_budget')
+                user.delete()  # Delete the user
+            except Exception as e:
+                return Response({"detail": "Failed to delete user."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response({"detail": "User deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
         return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
@@ -218,7 +224,7 @@ class LoginView(APIView):
         expires = now() + timedelta(seconds=OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
         access_token = AccessToken(
             user=user,
-            scope='read write groups',
+            scope='read write',
             expires=expires,
             token=common.generate_token(),
             application=application
@@ -253,7 +259,6 @@ class LoginView(APIView):
         return Response(resp_data, status=status.HTTP_200_OK, headers={})
 
 
-# TODO: not working problems with the token
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 

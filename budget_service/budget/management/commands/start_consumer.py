@@ -1,28 +1,30 @@
 from django.core.management.base import BaseCommand
 import pika
-import json
 import sys
 import signal
-from send_email.consumer import send_invitation_email  # Import the user_lookup function from consumer.py
+from budget.consumer import callback, delete_user_budget
 
 class Command(BaseCommand):
     help = 'Start the RabbitMQ consumer for user lookup'
 
     def handle(self, *args, **kwargs):
         params = pika.URLParameters('amqps://bdsnvese:s3U-C0irT91fkjV9VXgYjA5Uo0bYhPPQ@hawk.rmq.cloudamqp.com/bdsnvese')
-        params.heartbeat = 600  # Sends heartbeats every 60 seconds
+        params.heartbeat = 600  # Sends heartbeats every 600 seconds
 
         connection = pika.BlockingConnection(params)
-
         channel = connection.channel()
 
+        channel.queue_declare(queue='main')
+        channel.queue_declare(queue='user_lookup_response')
+        channel.queue_declare(queue='delete_user_budget')
 
-        channel.queue_declare(queue='send_email_invitations')
+        channel.basic_consume(queue='main', on_message_callback=callback, auto_ack=True)
+        channel.basic_consume(queue='delete_user_budget', on_message_callback=delete_user_budget, auto_ack=True)
 
-        channel.basic_consume(queue='send_email_invitations', on_message_callback=send_invitation_email, auto_ack=True)
-        print('Waiting for messages. To exit press CTRL+C')
-        channel.start_consuming()
-        
+        print('Consuming validation results...\n Exit with CTRL+C')
+
+        channel.start_consuming()       
+
 
 def graceful_shutdown(signum, frame):
     print("Shutting down gracefully...")
@@ -32,3 +34,4 @@ def graceful_shutdown(signum, frame):
 # Attach signal handlers
 signal.signal(signal.SIGTERM, graceful_shutdown)
 signal.signal(signal.SIGINT, graceful_shutdown)
+

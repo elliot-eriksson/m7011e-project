@@ -59,20 +59,3 @@ def send_invitation_email(ch, method, properties, body):
         email_log_serializer.is_valid(raise_exception=True)
         email_log_serializer.save()
     
-
-# params = pika.URLParameters('amqps://bdsnvese:s3U-C0irT91fkjV9VXgYjA5Uo0bYhPPQ@hawk.rmq.cloudamqp.com/bdsnvese')
-# connection = pika.BlockingConnection(params)
-
-# channel = connection.channel()
-
-# # channel.exchange_declare(exchange='invitations', exchange_type='fanout')
-# channel.queue_declare(queue='send_email_invitations')
-
-# # result = channel.queue_declare(queue='', exclusive=True)
-# # queue_name = result.method.queue
-# # channel.queue_bind(exchange='invitations', queue=queue_name)
-
-# channel.basic_consume(queue='send_email_invitations', on_message_callback=send_invitation_email, auto_ack=True)
-# print('Waiting for messages. To exit press CTRL+C')
-# channel.start_consuming()
-# connection.close()
