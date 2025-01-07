@@ -10,7 +10,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         params = pika.URLParameters('amqps://bdsnvese:s3U-C0irT91fkjV9VXgYjA5Uo0bYhPPQ@hawk.rmq.cloudamqp.com/bdsnvese')
-        params.heartbeat = 60  # Sends heartbeats every 60 seconds
+        params.heartbeat = 600  # Sends heartbeats every 60 seconds
 
         connection = pika.BlockingConnection(params)
         channel = connection.channel()

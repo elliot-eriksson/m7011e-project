@@ -21,6 +21,7 @@ class EmailLogView(viewsets.ModelViewSet):
         print("Request: ", request)
         # print("Request.json: ", request.json())
         isStaff = getStaffStatus(request.session["user_id"])
+        print("isStaff: ", isStaff)
         if not isStaff:
             print("Not staff, access forbidden")
             return HttpResponseForbidden("You do not have permission to access this resource.")

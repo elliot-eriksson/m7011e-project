@@ -25,9 +25,10 @@ def getStaffStatus(userID):
 
 
     if isStaff is None:
+        return False
         raise Exception("Staff lookup failed.")
-    if not isStaff:
-        print("Not staff")
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    # if not isStaff:
+    #     print("Not staff")
+    #     return Response(status=status.HTTP_403_FORBIDDEN)
     print("isStaff:", isStaff)
     return isStaff
