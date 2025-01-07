@@ -8,5 +8,5 @@ from .views import EmailLogView
 
 # TODO: lägg till CRUD endpoints för email_logs
 urlpatterns = [
-    path('api/', EmailLogView.as_view({'get': 'list', 'post': 'create'})),
+    path('emails/', EmailLogView.as_view({'get': 'list', 'post': 'create'})),
 ]

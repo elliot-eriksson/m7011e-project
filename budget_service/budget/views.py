@@ -181,7 +181,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         user = user_id
         if user != request.session.get('user_id'):
             return Response({'error': 'You do not have permission to view that users access.'}, status=status.HTTP_403_FORBIDDEN)
-        budgetAccess = BudgetAccess.objects.filter(user=user)
+        budgetAccess = BudgetAccess.objects.filter(user=user, accepted=True)
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
 
         # print(serializer.data)

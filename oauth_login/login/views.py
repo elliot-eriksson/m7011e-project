@@ -259,7 +259,6 @@ class LoginView(APIView):
         return Response(resp_data, status=status.HTTP_200_OK, headers={})
 
 
-# TODO: not working problems with the token
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 

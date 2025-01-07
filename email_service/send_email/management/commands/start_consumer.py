@@ -19,11 +19,14 @@ class Command(BaseCommand):
         # channel.exchange_declare(exchange='invitations', exchange_type='fanout')
         channel.queue_declare(queue='send_email_invitations')
 
+
+
         # result = channel.queue_declare(queue='', exclusive=True)
         # queue_name = result.method.queue
         # channel.queue_bind(exchange='invitations', queue=queue_name)
 
         channel.basic_consume(queue='send_email_invitations', on_message_callback=send_invitation_email, auto_ack=True)
+        # channel.basic_consume(queue='staff_lookup_response', on_message_callback=send_invitation_email, auto_ack=True)
         print('Waiting for messages. To exit press CTRL+C')
         channel.start_consuming()
         
