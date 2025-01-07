@@ -3,7 +3,6 @@ from django.db import models
 
 class Budget(models.Model):
     budgetName = models.CharField(max_length=100)
-    # owner = models.ForeignKey(User, related_name='budgets', on_delete=models.CASCADE)
     owner = models.BigIntegerField()
     budgetAmount = models.DecimalField(max_digits=10, decimal_places=2)
     currentAmount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -11,10 +10,6 @@ class Budget(models.Model):
     startDate = models.DateField()
     endDate = models.DateField()
     created = models.DateTimeField(auto_now_add=True)
-    # recurring = models.BooleanField(default=False)
-    # recurringTime = models.CharField(max_length=100, blank=True, null=True)
-
-    
 
 class BudgetRole(models.TextChoices):
     owner = 'owner', 'Owner'
@@ -26,9 +21,7 @@ class BudgetAccess(models.Model):
     user = models.BigIntegerField()
     accessLevel = models.CharField(max_length=50, choices=BudgetRole.choices)
     slug = models.SlugField(max_length=16, unique=True, null=True, blank=True)
-    accepted = models.BooleanField(default=False)
-    
-
+    accepted = models.BooleanField(default=False)  
 
     def has_permission(self, permission: str) -> bool:
 
@@ -65,8 +58,4 @@ class BudgetAccess(models.Model):
         }
 
         return permission in permissions.get(self.accessLevel, [])
-
-
-    # recurring = models.BooleanField(default=False)
-    # recurringTime = models.CharField(max_length=100, blank=True, null=True)
 

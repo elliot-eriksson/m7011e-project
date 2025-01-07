@@ -120,7 +120,6 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     serializer_class = BudgetAccessSerializer
 
     def dispatch(self, request, *args, **kwargs):
-        # print("Dispatching request for token validation.")
         request = AuthService.validate_token(request)
         return super().dispatch(request, *args, **kwargs)
     
@@ -177,14 +176,12 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         return Response({'message': 'User invited successfully.'})
 
     def listBudgetAccessByUser(self, request, user_id=None):
-        # TODO: ändra till slug
         user = user_id
         if user != request.session.get('user_id'):
             return Response({'error': 'You do not have permission to view that users access.'}, status=status.HTTP_403_FORBIDDEN)
         budgetAccess = BudgetAccess.objects.filter(user=user, accepted=True)
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
 
-        # print(serializer.data)
         return Response(serializer.data)
 
     def listBudgetAccessByBudget(self, request, budget_id=None):
@@ -225,9 +222,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER)
 
         return Response({'message': 'Access level updated successfully.'})
-        
-        # return super().update(request, *args, **kwargs)
-    
+            
     def destroy(self, request, *args, **kwargs):
         try:
             self.request.user = self.request.session.get('user_id')
@@ -270,10 +265,6 @@ class BudgetInvitationAcceptViewSet(viewsets.ModelViewSet):
     serializer_class = BudgetAccessSerializer
 
     def accept_invitation(self, request, token=None):
-        # Fetch the BudgetAccess object or return a 404
-        # print(f"Token: {token}")
-        # token = request.data.get('token')
-        # print(f"Token: {token}")
         budget_access = get_object_or_404(BudgetAccess, slug=token)
         
         if not token:
@@ -298,25 +289,14 @@ class BudgetInvitationAcceptViewSet(viewsets.ModelViewSet):
         )
         
 
+
 # class UserAPIView(APIView):
-#     def get(self, pk=None):
-#         users = get_user_model().objects.all()
-#         user = get_user_model().objects.get(id=pk)
-#         return Response({'id': user.id})
 
-
-
-
-class UserAPIView(APIView):
-    # Use JWT authentication and ensure the user is authenticated
-    # authentication_classes = [OAuth2Authentication]
-    # permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        # Retrieve user details from the request (decoded from the JWT token)
-        user = request.user
-        return Response({
-            'id': user.id,
-            'username': user.username,  # Add additional fields as needed
-            'email': user.email,
-        })
+#     def get(self, request):
+#         # Retrieve user details from the request (decoded from the JWT token)
+#         user = request.user
+#         return Response({
+#             'id': user.id,
+#             'username': user.username,  # Add additional fields as needed
+#             'email': user.email,
+#         })
