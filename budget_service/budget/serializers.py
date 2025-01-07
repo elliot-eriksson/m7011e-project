@@ -46,5 +46,9 @@ class BudgetSerializer(serializers.ModelSerializer):
 class BudgetAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = BudgetAccess
-        # fields = 'accessLevel', 'accepted'
-        fields = '__all__'
+        fields = 'accessLevel', 'slug', 'username', 'accepted', 'budget', 'user'
+
+        extra_kwargs = {
+            'budget': {'write_only': True},  # Ensure budget is required for write operations only
+            'user': {'write_only': True},    # Ensure user is required for write operations only
+        }

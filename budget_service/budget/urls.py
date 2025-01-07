@@ -20,10 +20,10 @@ urlpatterns = [
 
     path('invitations/accept/<str:token>', budget_accept_invitation, name='budget_accept_invitation'),
     
-    path('budget-access/<int:pk>/', budget_access_detail, name='budget-access-detail'),
-    path('budget-access/delete/<int:budgetID>/<str:username>/', budget_access_delete, name='budget-access-delete'),
-    path('budget-access/user/<int:user_id>/', budget_access_by_user, name='budget-access-by-user'),
-    path('budget-access/budget/<int:budget_id>/', budget_access_by_budget, name='budget-access-by-budget'),
+    path('budget-access/<slug:slug>/', budget_access_detail, name='budget-access-detail'),
+    path('budget-access/delete/<slug:slug>/<str:username>/', budget_access_delete, name='budget-access-delete'),
+    path('budget-access/user/<str:username>/', budget_access_by_user, name='budget-access-by-user'),
+    path('budget-access/budget/<slug:slug>/', budget_access_by_budget, name='budget-access-by-budget'),
 
 ]
 

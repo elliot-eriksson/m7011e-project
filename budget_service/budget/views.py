@@ -74,17 +74,22 @@ class BudgetViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         self.request.user = self.request.session.get('user_id')
         user_id = self.request.user
-        serializer.save(owner=user_id)
+        serializer.is_valid(raise_exception=True)
+        budget = serializer.save(owner=user_id)
         self.createBudgetAccessEntry(serializer.instance, user_id)
 
     def createBudgetAccessEntry(self, budget, user_id, accessLevel= 'owner', accepted=True):
-        #TODO: kanske går att använda denna i addBudgetAccess också
-        # print('creating budget access entry')
+        while True:
+            slugToken = get_random_string(length=16, allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+            if not BudgetAccess.objects.filter(slug=slugToken).exists():
+                break
         budget_access_data = {
             'budget': budget.id,
             'user': user_id,
             'accessLevel': 'owner',
-            'accepted': True
+            'accepted': True,
+            'slug': slugToken,
+            'username': self.request.session.get('username')
         }
         budget_access_serializer = BudgetAccessSerializer(data=budget_access_data)
         budget_access_serializer.is_valid(raise_exception=True)
@@ -102,7 +107,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
 class BudgetAccessViewSet(viewsets.ModelViewSet):
     queryset = Budget.objects.all()
     serializer_class = BudgetAccessSerializer
-
+    lookup_field = 'slug'
 
     def dispatch(self, request, *args, **kwargs):
         request = AuthService.validate_token(request)
@@ -110,13 +115,14 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
-        instance = self.get_object()
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        access = get_object_or_404(BudgetAccess, user=request.user, slug=kwargs['slug'])
+        # instance = self.get_object()
+        # access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
         return Response(BudgetAccessSerializer(access).data)
     
-    def addBudgetAccess(self, request, budget_id=None):
+    def addBudgetAccess(self, request, slug=None):
         self.request.user = self.request.session.get('user_id')
-        budget = get_object_or_404(Budget, pk=budget_id)
+        budget = get_object_or_404(Budget, slug=slug)
         access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
 
         username = request.data.get('username')
@@ -150,7 +156,8 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
                 'budget': budget.id,
                 'user': user_ID,
                 'accessLevel': role,
-                'slug': slugToken
+                'slug': slugToken,
+                'username': username
             }
             budget_access_serializer = BudgetAccessSerializer(data=budget_access_data)
             budget_access_serializer.is_valid(raise_exception=True)
@@ -160,21 +167,20 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
 
         return Response({'message': 'User invited successfully.'})
 
-    def listBudgetAccessByUser(self, request, user_id=None):
-        user = user_id
-        if user != request.session.get('user_id'):
+    def listBudgetAccessByUser(self, request, username=None):
+        if username != request.session.get('username'):
             return Response({'error': 'You do not have permission to view that users access.'}, status=status.HTTP_403_FORBIDDEN)
         budgetAccess = BudgetAccess.objects.filter(user=user, accepted=True)
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
 
         return Response(serializer.data)
 
-    def listBudgetAccessByBudget(self, request, budget_id=None):
+    def listBudgetAccessByBudget(self, request, slug=None):
         request.user = request.session.get('user_id')
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget_id)
+        budget = get_object_or_404(Budget, slug=slug)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
         if not access.has_permission('view_budget_access'):
             return Response({'error': 'You do not have permission to view access to this budget.'}, status=status.HTTP_403_FORBIDDEN)
-        budget = Budget.objects.get(id=budget_id)
         budgetAccess = BudgetAccess.objects.filter(budget=budget)
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
         return Response(serializer.data)
@@ -221,9 +227,9 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         return Response({'You have left the budget'},status=status.HTTP_204_NO_CONTENT)
 
     # TODO: change pk to slug
-    def deleteBudgetAccess(self, request, budgetID=None, username=None):
+    def deleteBudgetAccess(self, request, slug=None, username=None):
         self.request.user = self.request.session.get('user_id')
-        budget = get_object_or_404(Budget, pk=budgetID)
+        budget = get_object_or_404(Budget, slug=slug)
         access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
 
         if not access.has_permission('remove_admin') or not access.has_permission('remove_user_access'):
@@ -272,16 +278,3 @@ class BudgetInvitationAcceptViewSet(viewsets.ModelViewSet):
             {"message": "Access accepted successfully."},
             status=status.HTTP_200_OK
         )
-        
-
-
-# class UserAPIView(APIView):
-
-#     def get(self, request):
-#         # Retrieve user details from the request (decoded from the JWT token)
-#         user = request.user
-#         return Response({
-#             'id': user.id,
-#             'username': user.username,  # Add additional fields as needed
-#             'email': user.email,
-#         })

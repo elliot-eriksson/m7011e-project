@@ -22,7 +22,8 @@ class BudgetAccess(models.Model):
     user = models.BigIntegerField()
     accessLevel = models.CharField(max_length=50, choices=BudgetRole.choices)
     slug = models.SlugField(max_length=16, unique=True, null=True, blank=True)
-    accepted = models.BooleanField(default=False)  
+    accepted = models.BooleanField(default=False)
+    username = models.CharField(max_length=100, null=True, blank=True)
 
     def has_permission(self, permission: str) -> bool:
 
