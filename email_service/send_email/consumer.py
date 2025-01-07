@@ -33,9 +33,9 @@ def send_invitation_email(ch, method, properties, body):
     print(f"Sending email to {recipient_email}")
     print(f"Subject: {subject}")
     print(f"Message: {message}")
-
+    
     try:
-        send_mail(subject, message, 'boinkswe@gmail.com', [recipient_email], fail_silently=False)
+        send_mail(subject, message, settings.SENDGRID_FROM_EMAIL , [recipient_email], fail_silently=False)
         print("Email sent successfully")
         email_log_data = {
             'recipient_email': recipient_email,

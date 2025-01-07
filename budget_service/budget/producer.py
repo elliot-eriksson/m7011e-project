@@ -1,6 +1,8 @@
 import pika, json
+from decouple import config
 
-params = pika.URLParameters('amqps://bdsnvese:s3U-C0irT91fkjV9VXgYjA5Uo0bYhPPQ@hawk.rmq.cloudamqp.com/bdsnvese')
+RABBITMQ_URL = config('RABBITMQ_URL')
+params = pika.URLParameters(RABBITMQ_URL)
 params.heartbeat = 600  # Sends heartbeats every 60 seconds
 
 connection = pika.BlockingConnection(params)

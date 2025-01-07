@@ -4,12 +4,15 @@ import json
 import sys
 import signal
 from send_email.consumer import send_invitation_email  # Import the user_lookup function from consumer.py
+from decouple import config
+
+RABBITMQ_URL = config('RABBITMQ_URL')
 
 class Command(BaseCommand):
     help = 'Start the RabbitMQ consumer for user lookup'
 
     def handle(self, *args, **kwargs):
-        params = pika.URLParameters('amqps://bdsnvese:s3U-C0irT91fkjV9VXgYjA5Uo0bYhPPQ@hawk.rmq.cloudamqp.com/bdsnvese')
+        params = pika.URLParameters(RABBITMQ_URL)
         params.heartbeat = 600  # Sends heartbeats every 60 seconds
 
         connection = pika.BlockingConnection(params)
