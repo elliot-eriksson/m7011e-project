@@ -6,9 +6,8 @@ from django.dispatch import receiver
 class Transaction(models.Model):
     categoreChoices = [
         ('income', 'Income'),
-        ('expense', 'Expense'),
-        # ('transfer', 'Transfer'),
-        # ('leftover', 'Leftover'),
+        ('expense', 'Expense')
+
     ]
     user = models.BigIntegerField()
     budget = models.ForeignKey('budget.Budget', related_name='transactions', on_delete=models.CASCADE)
@@ -43,7 +42,4 @@ def update_budget_on_save(sender, instance, created, **kwargs):
         budget.currentAmount += previous_amount  # Undo the previous deduction
         budget.currentAmount -= instance.amount  # Apply the new amount
     budget.save()
-
-### TODO Handle a transfer between budgets
-### TODO Handle a leftover transaction
 

@@ -159,7 +159,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         if access_response:
             return access_response
         
-        slugToken = budget_access_service.publish_email_invitation(user_email, budget, role)
+        slugToken = budget_access_service.publish_email_invitation(user_email, budget, role, user_ID)
         try:
             budget_access_data = {
                 'budget': budget.id,
