@@ -23,7 +23,7 @@ from django.utils.timezone import now
 from datetime import timedelta
 from oauth2_provider.models import AccessToken, RefreshToken, Application
 from oauthlib import common
-
+from .token_utils import revoke_token
 import json, pyotp, qrcode
 
 from .producer import publish
@@ -221,6 +221,8 @@ class LoginView(APIView):
         print('token expire', OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
         print('now', now())
 
+        revoke_token(user)
+        
         expires = now() + timedelta(seconds=OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
         access_token = AccessToken(
             user=user,

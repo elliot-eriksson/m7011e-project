@@ -1,7 +1,5 @@
 from datetime import datetime
-# from oauth2_provider.models import AccessToken
-
-from oauth2_provider.models import get_access_token_model
+from oauth2_provider.models import get_access_token_model, get_refresh_token_model
 from django.utils.timezone import now
 
 
@@ -38,3 +36,12 @@ def validate_token(token2):
         return {"valid": False, "error": str(e)}
     # except AccessToken.DoesNotExist:
     #     return {"valid": False, "error": "Token not found."}
+
+def revoke_token(user_id):
+    try:
+        AccessToken = get_access_token_model()
+        RefreshToken = get_refresh_token_model()
+        AccessToken.objects.filter(user=user_id).delete()
+        RefreshToken.objects.filter(user=user_id).delete()
+    except AccessToken.DoesNotExist:
+        pass
