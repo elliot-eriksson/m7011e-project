@@ -145,11 +145,9 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
         )
 
-        print(f"Role: {role}, Access: {access}")
         budget_access_service = BudgetAccessService(request)
 
         permission_response = budget_access_service.check_budget_access(role, access)
-        print(f"Permission response: {permission_response}")
         if permission_response:
             return permission_response
 
@@ -157,15 +155,12 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
             user_ID, user_email = getUserID(username, email)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        print(f"User ID: {user_ID}, User email: {user_email}")
         
         access_response = budget_access_service.create_budget_access(access, budget, user_ID, role)
-        print(f"Access response: {access_response}")
         if access_response:
             return access_response
         
         slugToken = budget_access_service.publish_email_invitation(user_email, budget, role)
-
         try:
             budget_access_data = {
                 'budget': budget.id,
@@ -173,7 +168,6 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
                 'accessLevel': role,
                 'slug': slugToken
             }
-
             budget_access_serializer = BudgetAccessSerializer(data=budget_access_data)
             budget_access_serializer.is_valid(raise_exception=True)
             budget_access_serializer.save()
@@ -208,16 +202,44 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         self.request.user = self.request.session.get('user_id')
         instance = self.get_object()
         access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
-        if not access.has_permission('edit_budget_access'):
+        username = request.data.get('username')
+        role = request.data.get('accessLevel')
+        if not username or not role:
+            return Response({'error': 'Username and accessLevel must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user_ID, user_email = getUserID(username, None)
+            accessToChange = get_object_or_404(BudgetAccess, user=user_ID, budget=instance)
+        except Exception as e:
+            return Response({'error': 'User does not have access to this budget.'}, status=status.HTTP_404_BAD_REQUEST)
+        if not access.has_permission('edit_access_level'):
             return Response({'error': 'You do not have permission to edit this budget access.'}, status=status.HTTP_403_FORBIDDEN)
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        if accessToChange.accessLevel == 'owner':
+            return Response({'error': 'Cannot change owner access level.'}, status=status.HTTP_400_BAD_REQUEST)
+        if role == 'owner':
+            return Response({'error': 'Cannot change access level to owner.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER)
 
-        return Response(serializer.data)
+        return Response({'message': 'Access level updated successfully.'})
         
         # return super().update(request, *args, **kwargs)
     
+    def destroy(self, request, *args, **kwargs):
+        try:
+            self.request.user = self.request.session.get('user_id')
+            instance = self.get_object()
+            access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+            if access.accessLevel == 'owner':
+                return Response({'error': 'Cannot delete owner access level, delete budget instead.'}, status=status.HTTP_400_BAD_REQUEST)
+            self.perform_destroy(instance)
+        except Exception as e:
+            return Response({'error': 'You dont have access to that budget'}, status=status.HTTP_404_INTERNAL_SERVER_ERROR)
+        return Response({'You have left the budget'},status=status.HTTP_204_NO_CONTENT)
+
     # TODO: change pk to slug
     def deleteBudgetAccess(self, request, budgetID=None, username=None):
         self.request.user = self.request.session.get('user_id')

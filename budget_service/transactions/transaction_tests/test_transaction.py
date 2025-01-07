@@ -42,83 +42,78 @@ class TransactionTestCase(APITestCase):
         )
         
 #############################################OWNER############################################################
-    # @patch("budget_service.auth_service.AuthService.validate_token")
-    # def test_create_transaction_as_owner(self, mock_validate_token):
-    #     # Mock token validation
-    #     mock_validate_token.side_effect = lambda request: request
+    @patch("budget_service.auth_service.AuthService.validate_token")
+    def test_create_transaction_as_owner(self, mock_validate_token):
+        # Mock token validation
+        mock_validate_token.side_effect = lambda request: request
 
-    #     # Log in as owner
-    #     self.client.force_login(self.owner)
+        # Log in as owner
+        self.client.force_login(self.owner)
 
-    #     session = self.client.session
-    #     session['user_id'] = self.owner.id
-    #     session.save()
+        session = self.client.session
+        session['user_id'] = self.owner.id
+        session.save()
 
-    #     response = self.client.post(
-    #         f"/api/transactions/",
-    #         data=json.dumps({
-    #             "budget": self.budget.id,
-    #             "amount": 100,
-    #             "description": "Test Income",
-    #             "category": "income",
-    #             "date": "2025-01-01",
-    #         }),
-    #         content_type="application/json"
-    #     )
-    #     self.assertEqual(response.status_code, 201)
+        response = self.client.post(
+            f"/api/transactions/",
+            data=json.dumps({
+                "budget": self.budget.id,
+                "amount": 100,
+                "description": "Test Income",
+                "category": "income",
+                "date": "2025-01-01",
+            }),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 201)
 
-    #     # Verify the transaction was created
-    #     self.assertTrue(Transaction.objects.filter(description="Test Income").exists(), "Transaction was not created")
+        # Verify the transaction was created
+        self.assertTrue(Transaction.objects.filter(description="Test Income").exists(), "Transaction was not created")
 
-    #     self.budget.refresh_from_db()
-    #     self.assertEqual(self.budget.currentAmount, 1000)
+        self.budget.refresh_from_db()
+        self.assertEqual(self.budget.currentAmount, 1000)
 
     
 
-    # path('transactions/<int:pk>/', TransactionViewSet.as_view({
-    #     'get': 'retrieve',
-    #     'put': 'update',
-    #     'delete': 'destroy'
-    # })),
-    # @patch("budget_service.auth_service.AuthService.validate_token")
-    # def test_transaction_as_owner(self, mock_validate_token):
-    #     mock_validate_token.side_effect = lambda request: request
+    @patch("budget_service.auth_service.AuthService.validate_token")
+    def test_transaction_as_owner(self, mock_validate_token):
+        mock_validate_token.side_effect = lambda request: request
 
-    #     # Log in as owner
-    #     self.client.force_login(self.owner)
+        # Log in as owner
+        self.client.force_login(self.owner)
 
-    #     session = self.client.session
-    #     session['user_id'] = self.owner.id
-    #     session.save()
+        session = self.client.session
+        session['user_id'] = self.owner.id
+        session.save()
 
-    #     response = self.client.get(f"/api/transactions/{self.transaction.id}/")
-    #     self.assertEqual(response.status_code, 200)
+        response = self.client.get(f"/api/transactions/{self.transaction.id}/")
+        self.assertEqual(response.status_code, 200)
 
-    #     expected_response = {
-    #         "budget": 1,   
-    #         "description": "Test Transaction",
-    #         "amount": "100.00",
-    #         "category": "expense",
-    #         "date": "2025-01-01",      
-    #     }
-    #     self.assertEqual(response.json(), expected_response)
+        expected_response = {
+            "budget": 1,   
+            "description": "Test Transaction",
+            "amount": "100.00",
+            "category": "expense",
+            "date": "2025-01-01",      
+        }
+        self.assertEqual(response.json(), expected_response)
 
-    #     response = self.client.put(
-    #         f"/api/transactions/{self.transaction.id}/",
-    #         data=json.dumps({
-    #             "amount": 200,
+        response = self.client.put(
+            f"/api/transactions/{self.transaction.id}/",
+            data=json.dumps({
+                "amount": 200,
 
-    #         }),
-    #         content_type="application/json"
-    #     )
+            }),
+            content_type="application/json"
+        )
 
-    #     self.assertEqual(response.status_code, 200)
-    #     self.transaction.refresh_from_db()
-    #     self.assertEqual(self.transaction.amount, 200)
+        self.assertEqual(response.status_code, 200)
+        self.transaction.refresh_from_db()
+        self.assertEqual(self.transaction.amount, 200)
 
-    #     response = self.client.delete(f"/api/transactions/{self.transaction.id}/")
-    #     self.assertEqual(response.status_code, 204)
-    #     self.assertFalse(Transaction.objects.filter(description="Test Transaction").exists())
+        response = self.client.delete(f"/api/transactions/{self.transaction.id}/")
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Transaction.objects.filter(description="Test Transaction").exists())
 
     @patch("budget_service.auth_service.AuthService.validate_token")
     def test_transactions_budget_owner(self, mock_validate_token):
