@@ -10,6 +10,7 @@ class Budget(models.Model):
     startDate = models.DateField()
     endDate = models.DateField()
     created = models.DateTimeField(auto_now_add=True)
+    slug = models.SlugField(max_length=16, unique=True, null=True, blank=True)
 
 class BudgetRole(models.TextChoices):
     owner = 'owner', 'Owner'

@@ -21,31 +21,19 @@ class BudgetViewSet(viewsets.ModelViewSet):
     ##CHANGE
     queryset = Budget.objects.all()
     serializer_class = BudgetSerializer
+    lookup_field = 'slug'
 
     def dispatch(self, request, *args, **kwargs):
-        # print("Dispatching request for token validation.")
-        # print(f"Request: {request}")
         request = AuthService.validate_token(request)
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        # print('getting queryset')
-        # self.request.user = self.request.user_info.get('user_id')
         self.request.user = self.request.session.get('user_id')
-        # print(f"User: {self.request.user}")
         access_entries = BudgetAccess.objects.filter(user=self.request.user)
-        # print(f"BudgetAccess entries for user {self.request.user}: {access_entries}")
-        # budgets = Budget.objects.filter(owner=self.request.user)
         budgets = Budget.objects.filter(id__in=[access.budget.id for access in access_entries])
-        # print(f"Budgets found: {budgets}")
-
-        # print(f"Budgets for user: {Budget.objects.filter(owner=self.request.user)}")
         return budgets
-        # return Budget.objects.filter(owner=self.request.user)
 
     def list(self, request, *args, **kwargs):
-        # print('listing budgets')
-        # print(f"User ID: {request.session.get('user_id')}")
         request.user = request.session.get('user_id')
         
         response = BudgetAccessViewSet.listBudgetAccessByUser(self, request, request.user)
@@ -63,7 +51,6 @@ class BudgetViewSet(viewsets.ModelViewSet):
             except Budget.DoesNotExist:
                 print(f"Budget with ID {r['budget']} does not exist.")
 
-        # print(f"List of budgets: {serialized_budgets}")
         # Return the serialized data in a Response object
         return Response(serialized_budgets)
 
@@ -83,15 +70,12 @@ class BudgetViewSet(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response(serializer.data)        
-        # return super().update(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         self.request.user = self.request.session.get('user_id')
         user_id = self.request.user
         serializer.save(owner=user_id)
-        # print('creating budget')
         self.createBudgetAccessEntry(serializer.instance, user_id)
-        # self.createBudgetAccessEntry(serializer.instance, self.request.user)
 
     def createBudgetAccessEntry(self, budget, user_id, accessLevel= 'owner', accepted=True):
         #TODO: kanske går att använda denna i addBudgetAccess också
@@ -118,6 +102,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
 class BudgetAccessViewSet(viewsets.ModelViewSet):
     queryset = Budget.objects.all()
     serializer_class = BudgetAccessSerializer
+
 
     def dispatch(self, request, *args, **kwargs):
         request = AuthService.validate_token(request)

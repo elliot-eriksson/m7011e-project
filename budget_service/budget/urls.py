@@ -16,7 +16,7 @@ budget_accept_invitation = BudgetInvitationAcceptViewSet.as_view({'get': 'accept
 
 urlpatterns = [
     path('budgets/', budget_list, name='budget-list'),
-    path('budgets/<int:pk>/', budget_detail, name='budget-detail'),
+    path('budgets/<slug:slug>/', budget_detail, name='budget-detail'),
 
     path('invitations/accept/<str:token>', budget_accept_invitation, name='budget_accept_invitation'),
     
