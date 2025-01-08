@@ -36,22 +36,20 @@ class BudgetViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         request.user = request.session.get('user_id')
         
-        response = BudgetAccessViewSet.listBudgetAccessByUser(self, request, request.user)
+        # response = BudgetAccessViewSet.listBudgetAccessByUser(self, request, request.session.get('username'))
+        budget_access_objects = BudgetAccess.objects.filter(user=request.user, accepted=True)
         serialized_budgets = []
-
-        for r in response.data:
+        for access in budget_access_objects:
             try:
-                # Get the Budget object associated with the budget ID
-                budget = Budget.objects.get(id=r['budget'])
+                # Access the related budget using the budget ID
+                budget = access.budget  # Direct relation from the BudgetAccess model
                 
                 # Serialize the Budget object
                 serialized_budget = BudgetSerializer(budget)
                 serialized_budgets.append(serialized_budget.data)
 
             except Budget.DoesNotExist:
-                print(f"Budget with ID {r['budget']} does not exist.")
-
-        # Return the serialized data in a Response object
+                return Response({'error': f"Budget with ID {access.budget_id} does not exist."}, status=status.HTTP_404_NOT_FOUND)
         return Response(serialized_budgets)
 
     def update(self, request, *args, **kwargs):
@@ -66,7 +64,6 @@ class BudgetViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
         except Exception as e:
-            print(f"Error: {e}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response(serializer.data)        
@@ -115,9 +112,8 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
-        access = get_object_or_404(BudgetAccess, user=request.user, slug=kwargs['slug'])
-        # instance = self.get_object()
-        # access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        budget = get_object_or_404(Budget, slug=kwargs['slug'])
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
         return Response(BudgetAccessSerializer(access).data)
     
     def addBudgetAccess(self, request, slug=None):
@@ -170,9 +166,8 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     def listBudgetAccessByUser(self, request, username=None):
         if username != request.session.get('username'):
             return Response({'error': 'You do not have permission to view that users access.'}, status=status.HTTP_403_FORBIDDEN)
-        budgetAccess = BudgetAccess.objects.filter(user=user, accepted=True)
+        budgetAccess = BudgetAccess.objects.filter(username=username, accepted=True)
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
-
         return Response(serializer.data)
 
     def listBudgetAccessByBudget(self, request, slug=None):

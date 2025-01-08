@@ -22,7 +22,6 @@ class BudgetSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Default values
-        print(validated_data)
         validated_data.setdefault('currentAmount', 0.00)
         validated_data.setdefault('startDate', date.today())
         validated_data.setdefault('endDate', date.today().replace(year=date.today().year + 100))
