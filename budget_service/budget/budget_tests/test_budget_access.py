@@ -126,19 +126,10 @@ class BudgetAccessTest(APITestCase):
         session['user_id'] = self.owner.id
         session.save()
 
-        BudgetAccess.objects.create(
-        budget=self.budget,
-        user=self.owner.id,
-        accessLevel=BudgetRole.owner,
-        slug=self.budget.slug,
-        accepted=True
-    )
-
         response = self.client.get(
             f"/api/budget-access/{self.budget.slug}/",
             content_type="application/json"
         )
-        print(response.json())
         self.assertEqual(response.status_code, 200)
 
         expected_response = {
