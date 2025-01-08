@@ -22,7 +22,7 @@ def send_invitation_email(ch, method, properties, body):
     
 
 
-    invitation_link = f"{settings.BUDGET_SERVICE_URL}/api/invitations/{token}"
+    invitation_link = f"{settings.BUDGET_SERVICE_URL}/api/invitations/accept/{token}/"
     subject = f"Invitation to join the budget: {budget_name}"
     message = (
         f"Hello,\n\n"

@@ -18,7 +18,7 @@ urlpatterns = [
     path('budgets/', budget_list, name='budget-list'),
     path('budgets/<slug:slug>/', budget_detail, name='budget-detail'),
 
-    path('invitations/accept/<str:token>', budget_accept_invitation, name='budget_accept_invitation'),
+    path('invitations/accept/<str:token>/', budget_accept_invitation, name='budget_accept_invitation'),
     
     path('budget-access/<slug:slug>/', budget_access_detail, name='budget-access-detail'),
     path('budget-access/delete/<slug:slug>/<str:username>/', budget_access_delete, name='budget-access-delete'),
