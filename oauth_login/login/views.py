@@ -2,9 +2,7 @@ import base64
 import hashlib
 
 from io import BytesIO
-
 from oauth_login.settings import OAUTH2_PROVIDER
-
 from .models import UserG2FA
 from rest_framework import generics
 from django.contrib.auth.models import User
@@ -18,12 +16,11 @@ from oauth2_provider.models import get_access_token_model
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
-from oauth2_provider.oauth2_backends import get_oauthlib_core
 from django.utils.timezone import now
 from datetime import timedelta
 from oauth2_provider.models import AccessToken, RefreshToken, Application
 from oauthlib import common
-
+from .token_utils import revoke_token
 import json, pyotp, qrcode
 
 from .producer import publish
@@ -44,8 +41,10 @@ class UserRegistration(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print('request.data', request.data)
         data = request.data
+        user = User.objects.filter(email=request.data['email'])
+        if user:
+            return Response({'detail': 'User with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = UserRegistrationSerializer(data=data)
 
         if serializer.is_valid():
@@ -184,8 +183,6 @@ class G2FAView(APIView):
             return JsonResponse({'detail': '2FA not enabled.'}, status=400)
         
         totp = pyotp.TOTP(user_g2fa.g2fa_secret)
-        print('otp', otp)
-        print('totp', totp)
         if totp.verify(otp):
             if not user_g2fa.g2fa_enabled:
                 user_g2fa.g2fa_enabled = True
@@ -216,11 +213,9 @@ class LoginView(APIView):
             return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         application = Application.objects.filter(client_id='Zx6bjPzYlzArXlKhDbIvNWoIk5LsmZVdcXSpBrSV').first()
-        print('application', application)
 
-        print('token expire', OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
-        print('now', now())
-
+        revoke_token(user)
+        
         expires = now() + timedelta(seconds=OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'])
         access_token = AccessToken(
             user=user,
@@ -276,8 +271,6 @@ class VerifyOTPView(APIView):
 
         user_g2fa = UserG2FA.objects.get(user=user)
         totp = pyotp.TOTP(user_g2fa.g2fa_secret)
-        print('otp', otp)
-        print('totp', totp)
 
         if totp.verify(otp):
             print('otp verified')

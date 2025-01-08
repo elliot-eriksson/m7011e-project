@@ -27,12 +27,13 @@ class BudgetAccessTest(APITestCase):
             category="General",
             startDate="2025-01-01",
             endDate="2025-12-31",
+            slug="Test-budget"
         )
 
         # Assign roles
-        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner, accepted=True)
-        BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=True)
-        BudgetAccess.objects.create(budget=self.budget, user=self.member.id, accessLevel=BudgetRole.member, accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner, accepted=True, slug="owner", username=self.owner.username)
+        BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=True, slug="admin", username=self.admin.username)
+        BudgetAccess.objects.create(budget=self.budget, user=self.member.id, accessLevel=BudgetRole.member, accepted=True, slug="member", username=self.member.username)
 
     # Test for path('budget/<int:budget_id>/', views.budget_access_by_budget, name="budget_access_by_budget"), get
     @patch("budget_service.auth_service.AuthService.validate_token")
@@ -46,37 +47,31 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.get(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
 
         expected_response = [{
-            "id": 1,
-            "user": 1,
             "accessLevel": "owner",
-            "slug": None,
+            "slug": "owner",
             "accepted": True,
-            "budget": self.budget.id
+            "username": self.owner.username,
             }]
         expected_response.append(
             {
-            "id": 2,
-            "user": 2,
             "accessLevel": "admin",
-            "slug": None,
+            "slug": "admin",
             "accepted": True,
-            "budget": self.budget.id
+            "username": self.admin.username,
             }
         )
         expected_response.append(
             {
-            "id": 3,
-            "user": 3,
             "accessLevel": "member",
-            "slug": None,
+            "slug": "member",
             "accepted": True,
-            "budget": self.budget.id
+            "username": self.member.username,
             }
         )
 
@@ -85,7 +80,7 @@ class BudgetAccessTest(APITestCase):
         session['user_id'] = self.member.id
         session.save()
         response = self.client.get(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 403)
@@ -98,26 +93,25 @@ class BudgetAccessTest(APITestCase):
 
         session = self.client.session
         session['user_id'] = self.owner.id
+        session['username'] = self.owner.username
         session.save()
 
         response = self.client.get(
-            f"/api/budget-access/user/{self.owner.id}/",
+            f"/api/budget-access/user/{self.owner.username}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
 
         expected_response = [{
-            "id": 1,
-            "user": 1,
             "accessLevel": "owner",
-            "slug": None,
+            "slug": "owner",
             "accepted": True,
-            "budget": self.budget.id
+            "username": self.owner.username,
             }]
         self.assertEqual(response.json(), expected_response)
 
         response = self.client.get(
-            f"/api/budget-access/user/{self.member.id}/",
+            f"/api/budget-access/user/{self.member.username}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 403)
@@ -133,18 +127,16 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.get(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
 
         expected_response = {
-            "id": 1,
-            "user": 1,
             "accessLevel": "owner",
-            "slug": None,
+            "slug": "owner",
             "accepted": True,
-            "budget": self.budget.id
+            "username": self.owner.username,
         }
         self.assertEqual(response.json(), expected_response)
 
@@ -152,7 +144,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.get(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 404)
@@ -169,11 +161,11 @@ class BudgetAccessTest(APITestCase):
         session['user_id'] = self.owner.id
         session.save()
 
-        BudgetAccess.objects.create(budget=self.budget, user=self.testUser.id, accessLevel=BudgetRole.member, accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.testUser.id, accessLevel=BudgetRole.member, accepted=True, slug="testUser")
 
 
         response = self.client.put(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             data=json.dumps({
                 "accessLevel": BudgetRole.admin,
                 "username": self.testUser.username
@@ -191,11 +183,11 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         self.testUser2 = User.objects.create_user(username="testUser2", password="test_pass2")
-        BudgetAccess.objects.create(budget=self.budget, user=self.testUser2.id, accessLevel=BudgetRole.member, accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.testUser2.id, accessLevel=BudgetRole.member, accepted=True, slug="testUser2")
 
 
         response = self.client.put(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             data=json.dumps({
                 "accessLevel": BudgetRole.admin,
                 "username": self.testUser.username
@@ -216,7 +208,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.delete(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 400)
@@ -225,7 +217,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.delete(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 204)
@@ -246,7 +238,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.delete(
-            f"/api/budget-access/delete/{self.budget.id}/{self.owner.username}/",
+            f"/api/budget-access/delete/{self.budget.slug}/{self.owner.username}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 400)
@@ -257,7 +249,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.delete(
-            f"/api/budget-access/delete/{self.budget.id}/{self.admin.username}/",
+            f"/api/budget-access/delete/{self.budget.slug}/{self.admin.username}/",
             content_type="application/json"
         )
 
@@ -267,7 +259,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.delete(
-            f"/api/budget-access/delete/{self.budget.id}/{self.member.username}/",
+            f"/api/budget-access/delete/{self.budget.slug}/{self.member.username}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
@@ -288,7 +280,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             data=json.dumps({
                 "user": "new_user",
                 "email": "new_user@example.com",
@@ -307,7 +299,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             data=json.dumps({
                 "user": "new_admin",
                 "email": "new_admin@example.com",
@@ -324,7 +316,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             data=json.dumps({
                 "user": "new_member",
                 "email": "new_member@exmaple.com",
@@ -353,15 +345,16 @@ class BudgetInvationAcceptTest(APITestCase):
             category="General",
             startDate="2025-01-01",
             endDate="2025-12-31",
+            slug="Test-budget"
         )
 
-        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner, accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner, accepted=True, slug="owner")
         BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=False, slug="SlugStuff")
 
     def test_budget_invitation_accept(self):
 
         response = self.client.get(
-            f"/api/invitations/accept/SlugStuff",
+            f"/api/invitations/accept/SlugStuff/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)

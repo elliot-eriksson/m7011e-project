@@ -19,7 +19,7 @@ class BudgetAccessService:
         if role not in [BudgetRole.admin, BudgetRole.member]:
             return Response({'error': 'Invalid role.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def publish_email_invitation(self, user_email, budget, role):
+    def publish_email_invitation(self, user_email, budget, role, user_id):
         # Generate slugToken
         while True:
             slugToken = get_random_string(length=16, allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
@@ -32,6 +32,8 @@ class BudgetAccessService:
             'budget_name': budget.budgetName,
             'role': role,
             'inviter_name': self.request.session.get('username'),
+            'inviter_id' : self.request.session.get('user_id'),
+            'recipient_id': user_id,
             'token': slugToken
         }
 
@@ -44,12 +46,12 @@ class BudgetAccessService:
 
     def create_budget_access(self, access, budget, user_ID, role):
         try:
-            budgetAccess = BudgetAccess.objects.filter(user=user_ID, budget=budget).first()
+            budgetAccess = BudgetAccess.objects.filter(user=user_ID, budget=budget, accepted=True).first()
             if budgetAccess:
-                if budgetAccess.roll == role:
+                if budgetAccess.accessLevel == role:
                     return Response({'error': 'User already has access to this budget.'}, status=status.HTTP_400_BAD_REQUEST)
                 elif access.has_permission('invite_user_as_admin'):
-                    budgetAccess.roll = role
+                    budgetAccess.accessLevel = role
                     budgetAccess.save()
                     return Response({'message': 'User access level updated successfully.'})
         except Exception as e:

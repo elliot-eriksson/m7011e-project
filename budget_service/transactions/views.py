@@ -20,7 +20,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     # Always override user from request context
         # print("Performing create")
         # print(self.request.session.get('user_id'), self.request.data['budget'])
-        access = BudgetAccess.objects.get(user=self.request.session.get('user_id'), budget=request.data['budget'])
+        access = BudgetAccess.objects.get(user=self.request.session.get('user_id'), budget=request.data['budget'], accepted=True)
 
         if not access.has_permission('add_transaction'):
             return Response("Unauthorized to add transaction for this budget", status=401)
@@ -33,7 +33,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk=None):
         transaction = get_object_or_404(Transaction, pk=pk)
-        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id)
+        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id, accepted=True)
         if not access.has_permission('view_transactions'):
             return Response("Unauthorized to view transaction for this budget", status=401)
         serializer = TransactionSerializer(transaction)
@@ -50,7 +50,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def listByBudget(self, request, budget_id=None):
-        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=budget_id)
+        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=budget_id, accepted=True)
         if not access.has_permission('view_transactions'):
             return Response("Unauthorized to view transaction for this budget", status=401)
         transactions = Transaction.objects.filter(budget=budget_id)
@@ -59,7 +59,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     
     def update(self, request, pk=None):
         transaction = get_object_or_404(Transaction, pk=pk)
-        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id)
+        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id, accepted=True)
         if not access.has_permission('edit_transaction'):
             return Response("Unauthorized to edit transaction for this budget", status=401)
 
@@ -75,7 +75,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, pk=None):
         transaction = get_object_or_404(Transaction, pk=pk)
-        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id)
+        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id, accepted=True)
         if not access.has_permission('delete_transaction'):
             return Response("Unauthorized to delete transaction for this budget", status=401)
         return super().destroy(request, pk)

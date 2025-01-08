@@ -10,6 +10,7 @@ class Budget(models.Model):
     startDate = models.DateField()
     endDate = models.DateField()
     created = models.DateTimeField(auto_now_add=True)
+    slug = models.SlugField(max_length=16, unique=True, null=True, blank=True)
 
 class BudgetRole(models.TextChoices):
     owner = 'owner', 'Owner'
@@ -21,7 +22,8 @@ class BudgetAccess(models.Model):
     user = models.BigIntegerField()
     accessLevel = models.CharField(max_length=50, choices=BudgetRole.choices)
     slug = models.SlugField(max_length=16, unique=True, null=True, blank=True)
-    accepted = models.BooleanField(default=False)  
+    accepted = models.BooleanField(default=False)
+    username = models.CharField(max_length=100, null=True, blank=True)
 
     def has_permission(self, permission: str) -> bool:
 

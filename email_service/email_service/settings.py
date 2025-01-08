@@ -138,6 +138,7 @@ EMAIL_PORT = 587  # Default SMTP port
 EMAIL_USE_TLS = True  # Enable TLS for secure connection
 EMAIL_HOST_USER = "apikey"  # Username for SendGrid SMTP is always 'apikey'
 EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY')
+SENDGRID_FROM_EMAIL = config('SENDGRID_FROM_EMAIL')
 
 BUDGET_SERVICE_URL = "http://localhost:8002"
 
