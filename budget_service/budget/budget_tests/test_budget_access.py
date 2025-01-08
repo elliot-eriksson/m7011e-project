@@ -354,7 +354,7 @@ class BudgetInvationAcceptTest(APITestCase):
     def test_budget_invitation_accept(self):
 
         response = self.client.get(
-            f"/api/invitations/accept/SlugStuff",
+            f"/api/invitations/accept/SlugStuff/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 200)
