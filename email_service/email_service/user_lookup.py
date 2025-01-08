@@ -1,8 +1,6 @@
 from send_email.producer import channel, publish
 import json
 import time
-from rest_framework import status
-from rest_framework.response import Response
 
 def getStaffStatus(userID):
     payload = {}
@@ -26,9 +24,5 @@ def getStaffStatus(userID):
 
     if isStaff is None:
         return False
-        raise Exception("Staff lookup failed.")
-    # if not isStaff:
-    #     print("Not staff")
-    #     return Response(status=status.HTTP_403_FORBIDDEN)
-    print("isStaff:", isStaff)
+
     return isStaff

@@ -3,9 +3,6 @@ from rest_framework.routers import DefaultRouter
 
 from .views import TransactionViewSet
 
-# transaction_list = TransactionViewSet.as_view({
-#         'get': 'list'
-#     })
 
 transaction_detail = TransactionViewSet.as_view({
         'get': 'retrieve',
@@ -20,8 +17,6 @@ transaction_by_user = TransactionViewSet.as_view({
         'get': 'listByUser'
     })
 urlpatterns = [
-    # path ('', include(router.urls)),
-    # path('transactions/',transaction_list, name='transaction-list'),
     path('transactions/<slug:slug>/',transaction_detail, name='transaction-detail'),
     path('transactions/by-budget/<slug:slug>/', transaction_by_budget, name='transaction-by-budget'),
     path('transactions/by-user/<str:username>/', transaction_by_user, name='transaction-by-user'),

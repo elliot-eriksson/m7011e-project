@@ -1,13 +1,6 @@
-import json
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from .producer import publish
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import api_view
-from rest_framework.views import APIView
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.conf import settings
 from .serializers import *
 from .models import Budget
 from budget_service.auth_service import AuthService
@@ -35,19 +28,13 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         request.user = request.session.get('user_id')
-        
-        # response = BudgetAccessViewSet.listBudgetAccessByUser(self, request, request.session.get('username'))
         budget_access_objects = BudgetAccess.objects.filter(user=request.user, accepted=True)
         serialized_budgets = []
         for access in budget_access_objects:
-            try:
-                # Access the related budget using the budget ID
-                budget = access.budget  # Direct relation from the BudgetAccess model
-                
-                # Serialize the Budget object
+            try:          
+                budget = access.budget          
                 serialized_budget = BudgetSerializer(budget)
                 serialized_budgets.append(serialized_budget.data)
-
             except Budget.DoesNotExist:
                 return Response({'error': f"Budget with ID {access.budget_id} does not exist."}, status=status.HTTP_404_NOT_FOUND)
         return Response(serialized_budgets)
@@ -57,8 +44,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         access = get_object_or_404(BudgetAccess, user=request.user, budget=instance, accepted=True)
         if not access.has_permission('edit_budget'):
-            return Response({'error': 'You do not have permission to edit this budget.'}, status=status.HTTP_403_FORBIDDEN)    
-            # Allow partial updates    
+            return Response({'error': 'You do not have permission to edit this budget.'}, status=status.HTTP_403_FORBIDDEN)     
         try:
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
@@ -180,7 +166,6 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
         serializer = BudgetAccessSerializer(budgetAccess, many=True)
         return Response(serializer.data)
     
-    #TODO: Behöver mer checks för om du försöker ändra till admin
     def update(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
         instance = self.get_object()
@@ -221,7 +206,6 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You dont have access to that budget'}, status=status.HTTP_404_INTERNAL_SERVER_ERROR)
         return Response({'You have left the budget'},status=status.HTTP_204_NO_CONTENT)
 
-    # TODO: change pk to slug
     def deleteBudgetAccess(self, request, slug=None, username=None):
         self.request.user = self.request.session.get('user_id')
         budget = get_object_or_404(Budget, slug=slug)

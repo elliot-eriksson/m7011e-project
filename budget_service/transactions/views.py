@@ -17,8 +17,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return super().dispatch(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-    # Always override user from request context
-
         budget = Budget.objects.get(slug=self.kwargs['slug'])
 
         access = BudgetAccess.objects.get(user=self.request.session.get('user_id'), budget=budget)
@@ -64,7 +62,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if not access.has_permission('edit_transaction'):
             return Response("Unauthorized to edit transaction for this budget", status=401)
 
-          # Pass partial=True to allow partial updates (only fields provided in the request will be updated)
         serializer = self.get_serializer(transaction, data=request.data, partial=True)
         
         if serializer.is_valid():
@@ -72,7 +69,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         
         return Response(serializer.errors, status=400)
-        # return super().update(request, pk)
     
     def destroy(self, request, slug=None):
         transaction = get_object_or_404(Transaction, slug=slug)

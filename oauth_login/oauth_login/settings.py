@@ -11,19 +11,18 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-# BASE_DIR = "/app"
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ww5gxdm==rdzi6b3-1_6!csb*f31=fcm#hl03c+k-_58q25!ex'
+SECRET_KEY = config('SECRET_KEY')
 
-FIELD_ENCRYPTION_KEY   = "qRe8f1Nrfk2iwA_jLkqePzMRuDo3BUNxyxHxTHGBhYg="
+FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -42,16 +41,13 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'encrypted_model_fields',
     'rest_framework',
-    # 'login.apps.LoginConfig',
     'corsheaders',
     'login',
     'userSettings',
 ]
-# OAuth Toolkit Settings
 OAUTH2_PROVIDER = {
     'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # Token expiration time (1 hour)
     'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,  # Authorization code expiration time (10 minutes)
-    # 'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'},
 }
 
 REST_FRAMEWORK = {
@@ -102,7 +98,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-        # 'NAME': '/app/oauth_login/db.sqlite3',
     }
 }
 

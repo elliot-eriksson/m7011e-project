@@ -11,9 +11,8 @@ channel = connection.channel()
 channel.queue_declare(queue='user_lookup_response')
 channel.queue_declare(queue='token_result_queue')
 
-#token_validation_queue
 def publish(method, body, routing_key):
-    print('publishing to other service')
+    # print('publishing to other service')
     properties = pika.BasicProperties(method)
     channel.basic_publish(exchange='', routing_key=routing_key, body=json.dumps(body), properties=properties)
 

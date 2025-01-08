@@ -105,9 +105,18 @@ cd M7011E-project
     ```
 
 - For all other microservices, place the `.env` in main folder for the microservices (next to manage.py):
-    - Only the RabbitMQ URL is required in the `.env` file:
+    - the RabbitMQ URL is required and visit this link [text](http://127.0.0.1:8001/oauth/applications/register/) and register a application, then add 
+    client id and client secret in the `.env` file:
+    - make sure this  # path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')), is not commented in oauth_login urls.py for the link to work (not needed when program is running only for registering an application)
+ 
     ```env
-    RABBITMQ_URL=amqps://<username>:<password>@<host>/<vhost>
+   RABBITMQ_URL=amqps://<username>:<password>@<host>/<vhost>
+   #Django 
+   CLIENT_ID = "Replace with your client ID"  
+   CLIENT_SECRET = "Replace with your client secret" 
+
+   ###DJANGO settings 
+   SECRET_KEY = 'django-secret'
     ```
 ### 5. Run the Application
 Use Docker Compose to build and run the microservices.
