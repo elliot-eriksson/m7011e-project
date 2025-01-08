@@ -29,7 +29,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         self.request.user = self.request.session.get('user_id')
-        access_entries = BudgetAccess.objects.filter(user=self.request.user)
+        access_entries = BudgetAccess.objects.filter(user=self.request.user, accepted=True)
         budgets = Budget.objects.filter(id__in=[access.budget.id for access in access_entries])
         return budgets
 
