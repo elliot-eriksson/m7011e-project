@@ -1,9 +1,8 @@
 from django.core.management.base import BaseCommand
 import pika
-import json
 import sys
 import signal
-from login.consumer import user_lookup, process_oauth2_validation, lookupStaffStatus  # Import the user_lookup function from consumer.py
+from login.consumer import user_lookup, process_oauth2_validation, lookupStaffStatus  
 from decouple import config
 
 RABBITMQ_URL = config('RABBITMQ_URL')
@@ -38,7 +37,6 @@ class Command(BaseCommand):
 
 def graceful_shutdown(signum, frame):
     print("Shutting down gracefully...")
-    # Perform cleanup here (e.g., closing connections, saving state)
     sys.exit(0)
 
 # Attach signal handlers

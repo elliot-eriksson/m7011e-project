@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-#TODO add autmatic creation of user settings when user is created
-# Option to delete users account and all related data
 class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     currency_choices = [

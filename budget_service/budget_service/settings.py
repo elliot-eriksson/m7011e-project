@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ww5gxdm==rdzi6b3-1_6!csb*f31=fcm#hl03c+k-_58q25!ex'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -53,7 +54,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'budget_service.middleware.DebugMiddleware',  # Add this line
 ]
 
 ROOT_URLCONF = 'budget_service.urls'
@@ -131,22 +131,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_SERVICE_URL = 'http://127.0.0.1:8001'
 
-# OAuth Toolkit Settings
-# OAUTH2_PROVIDER = {
-#     'SCOPES': {
-#         'read': 'Read scope',
-#         'write': 'Write scope',
-#         'groups': 'Access to your groups',
-#     },
-# }
-
 REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework.authentication.TokenAuthentication',  # Optional if using custom validation
-    # )
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    #     )
 }
 LOGIN_URL = 'admin:login'
 

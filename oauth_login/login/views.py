@@ -1,5 +1,4 @@
 import base64
-import hashlib
 
 from io import BytesIO
 from oauth_login.settings import OAUTH2_PROVIDER
@@ -11,8 +10,6 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from oauth2_provider.views import IntrospectTokenView
-from oauth2_provider.models import get_access_token_model
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
@@ -21,12 +18,10 @@ from datetime import timedelta
 from oauth2_provider.models import AccessToken, RefreshToken, Application
 from oauthlib import common
 from .token_utils import revoke_token
-import json, pyotp, qrcode
+import pyotp, qrcode
 
 from .producer import publish
 
-# TODO: Create views to create, update, delete and list users
-# TODO: Create user Settings
 
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -80,41 +75,6 @@ class UserDeleteView(APIView):
             return Response({"detail": "User deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
         return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
-
-    # TODO: kan ändras till att bara användaren kan radera sitt konto
-    # def delete(self):
-    #     user = user.request
-    #     user.delete()
-    #     return Response({"detail": "User deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
-
-#TODO: ska tas bort (används inte) finns url i urls.py
-class CustomIntrospectToken(IntrospectTokenView):
-
-    def post(self, request, *args, **kwargs):
-        print('post')
-        post_data = request.POST
-        print('post_data', post_data)
-        token = post_data.get('token')
-
-        response = super().post(request, *args, **kwargs)
-        print('jsondata', response)
-        if isinstance(response, JsonResponse):
-            json_data = json.loads(response.content)
-            
-            print('json_data', json_data)
-
-            if json_data.get("active", False):
-                # Add a new field to the response data
-                token_checksum = hashlib.sha256(token.encode("utf-8")).hexdigest()
-                token_obj = get_access_token_model().objects.get(token_checksum=token_checksum)
-                json_data["user_id"] = token_obj.user.id
-                print('json_data with user_id', json_data)
-                publish('token.validated', json_data, 'token_validation_queue')
-            else:
-                json_data["user_id"] = None
-        
-
-        return JsonResponse(json_data)
 
 class PasswordUpdateView(APIView):
     """
@@ -248,7 +208,7 @@ class LoginView(APIView):
                 'scope': access_token.scope,
                 'refresh_token': refresh_token.token
             },
-            'user_id': user.id
+            # 'user_id': user.id
         }
         
         return Response(resp_data, status=status.HTTP_200_OK, headers={})
@@ -289,7 +249,7 @@ class VerifyOTPView(APIView):
                     'scope': access_token.scope,
                     'refresh_token': refresh_token.token
                 },
-                'user_id': user.id
+                # 'user_id': user.id
             }
             return Response(resp_data, status=status.HTTP_200_OK, headers={})
             

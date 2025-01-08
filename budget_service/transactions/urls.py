@@ -4,24 +4,20 @@ from rest_framework.routers import DefaultRouter
 from .views import TransactionViewSet
 
 
-router = DefaultRouter()
-router.register(r'transactions', TransactionViewSet, basename='transactions')
-
-urlpatterns = [
-    # path ('', include(router.urls)),
-    path('transactions/', TransactionViewSet.as_view({
-        'get': 'list',
-        'post': 'create'
-    })),
-    path('transactions/<int:pk>/', TransactionViewSet.as_view({
+transaction_detail = TransactionViewSet.as_view({
         'get': 'retrieve',
         'put': 'update',
-        'delete': 'destroy'
-    })),
-    path('transactions/by-budget/<int:budget_id>/', TransactionViewSet.as_view({
+        'delete': 'destroy',
+        'post': 'create'
+    })
+transaction_by_budget = TransactionViewSet.as_view({
         'get': 'listByBudget'
-    })),
-    path('transactions/by-user/<int:user_id>/', TransactionViewSet.as_view({
+    })
+transaction_by_user = TransactionViewSet.as_view({
         'get': 'listByUser'
-    })),
+    })
+urlpatterns = [
+    path('transactions/<slug:slug>/',transaction_detail, name='transaction-detail'),
+    path('transactions/by-budget/<slug:slug>/', transaction_by_budget, name='transaction-by-budget'),
+    path('transactions/by-user/<str:username>/', transaction_by_user, name='transaction-by-user'),
 ]

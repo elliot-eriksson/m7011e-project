@@ -12,7 +12,3 @@ def publish(method, body, queue='main'):
     print('publishing to queue', queue)
     properties = pika.BasicProperties(method)
     channel.basic_publish(exchange='', routing_key=queue, body=json.dumps(body), properties=properties)
-    
-
-
-    # connection.close()

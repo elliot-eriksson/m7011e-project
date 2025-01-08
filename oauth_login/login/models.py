@@ -4,8 +4,6 @@ from encrypted_model_fields.fields import EncryptedTextField
 
 import pyotp
 
-# Create your models here.
-# TODO: Create user Settings
 class UserG2FA(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='g2fa')
     g2fa_secret = EncryptedTextField(max_length=32, blank=True, null=True)

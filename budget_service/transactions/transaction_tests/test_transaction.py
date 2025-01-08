@@ -25,12 +25,13 @@ class TransactionTestCase(APITestCase):
             category="General",
             startDate="2025-01-01",
             endDate="2025-12-31",
+            slug="test-budget"
         )
 
         # Assign roles
-        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner, accepted=True)
-        BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=True)
-        BudgetAccess.objects.create(budget=self.budget, user=self.member.id, accessLevel=BudgetRole.member, accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner,slug="ownerSlug", accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin,slug="adminSlug", accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.member.id, accessLevel=BudgetRole.member,slug="memeberSlug", accepted=True)
 
         self.transaction = Transaction.objects.create(
             budget=self.budget,
@@ -38,10 +39,11 @@ class TransactionTestCase(APITestCase):
             amount=100,
             category="expense",
             date="2025-01-01",
-            user=self.owner.id
+            user=self.owner.id,
+            slug="test-transaction"
         )
         
-#############################################OWNER############################################################
+############################################OWNER############################################################
     @patch("budget_service.auth_service.AuthService.validate_token")
     def test_create_transaction_as_owner(self, mock_validate_token):
         # Mock token validation
@@ -55,7 +57,7 @@ class TransactionTestCase(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/transactions/",
+            f"/api/transactions/{self.budget.slug}/",
             data=json.dumps({
                 "budget": self.budget.id,
                 "amount": 100,
@@ -86,11 +88,10 @@ class TransactionTestCase(APITestCase):
         session['user_id'] = self.owner.id
         session.save()
 
-        response = self.client.get(f"/api/transactions/{self.transaction.id}/")
+        response = self.client.get(f"/api/transactions/{self.transaction.slug}/")
         self.assertEqual(response.status_code, 200)
 
         expected_response = {
-            "budget": 1,   
             "description": "Test Transaction",
             "amount": "100.00",
             "category": "expense",
@@ -99,7 +100,7 @@ class TransactionTestCase(APITestCase):
         self.assertEqual(response.json(), expected_response)
 
         response = self.client.put(
-            f"/api/transactions/{self.transaction.id}/",
+            f"/api/transactions/{self.transaction.slug}/",
             data=json.dumps({
                 "amount": 200,
 
@@ -111,7 +112,7 @@ class TransactionTestCase(APITestCase):
         self.transaction.refresh_from_db()
         self.assertEqual(self.transaction.amount, 200)
 
-        response = self.client.delete(f"/api/transactions/{self.transaction.id}/")
+        response = self.client.delete(f"/api/transactions/{self.transaction.slug}/")
         self.assertEqual(response.status_code, 204)
         self.assertFalse(Transaction.objects.filter(description="Test Transaction").exists())
 
@@ -125,19 +126,18 @@ class TransactionTestCase(APITestCase):
         session = self.client.session
         session['user_id'] = self.owner.id
         session.save()
-
-        response = self.client.get(f"/api/transactions/by-budget/{self.budget.id}/")
+        response = self.client.get(f"/api/transactions/by-budget/{self.budget.slug}/")
         self.assertEqual(response.status_code, 200)
 
         expected_response = [
-            {
-                "budget": 1,   
+            { 
                 "description": "Test Transaction",
                 "amount": "100.00",
                 "category": "expense",
-                "date": "2025-01-01",      
+                "date": "2025-01-01",
             }
         ]
+        
         self.assertEqual(response.json(), expected_response)
 
 
@@ -150,10 +150,15 @@ class TransactionTestCase(APITestCase):
             category="General",
             startDate="2025-01-01",
             endDate="2025-12-31",
+            slug="test-budget2"
         )
         self.budget.refresh_from_db()
 
-        response = self.client.get(f"/api/transactions/by-budget/{self.budget.id}/")
+        session = self.client.session
+        session['user_id'] = self.member.id
+        session.save()
+
+        response = self.client.get(f"/api/transactions/by-budget/{self.budget.slug}/")
         self.assertEqual(response.status_code, 404)
 
 
@@ -167,14 +172,14 @@ class TransactionTestCase(APITestCase):
 
         session = self.client.session
         session['user_id'] = self.owner.id
+        session['username'] = self.owner.username
         session.save()
 
-        response = self.client.get(f"/api/transactions/by-user/{self.owner.id}/")
+        response = self.client.get(f"/api/transactions/by-user/{self.owner.username}/")
         self.assertEqual(response.status_code, 200)
 
         expected_response = [
-            {
-                "budget": 1,   
+            { 
                 "description": "Test Transaction",
                 "amount": "100.00",
                 "category": "expense",
@@ -183,10 +188,10 @@ class TransactionTestCase(APITestCase):
         ]
         self.assertEqual(response.json(), expected_response)
 
-        response = self.client.get(f"/api/transactions/by-user/{self.admin.id}/")
+        response = self.client.get(f"/api/transactions/by-user/{self.admin.username}/")
         self.assertEqual(response.status_code, 401)
 
-#############################################ADMIN############################################################
+############################################ADMIN############################################################
     @patch("budget_service.auth_service.AuthService.validate_token")
     def test_create_transaction_as_admin(self, mock_validate_token):
         # Mock token validation
@@ -200,13 +205,13 @@ class TransactionTestCase(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/transactions/",
+            f"/api/transactions/{self.budget.slug}/",
             data=json.dumps({
-                "budget": self.budget.id,
                 "amount": 100,
                 "description": "Test admin Income",
                 "category": "income",
                 "date": "2025-01-01",
+
             }),
             content_type="application/json"
         )
@@ -229,11 +234,10 @@ class TransactionTestCase(APITestCase):
         session['user_id'] = self.admin.id
         session.save()
 
-        response = self.client.get(f"/api/transactions/{self.transaction.id}/")
+        response = self.client.get(f"/api/transactions/{self.transaction.slug}/")
         self.assertEqual(response.status_code, 200)
 
         expected_response = {
-            "budget": 1,   
             "description": "Test Transaction",
             "amount": "100.00",
             "category": "expense",
@@ -242,7 +246,7 @@ class TransactionTestCase(APITestCase):
         self.assertEqual(response.json(), expected_response)
 
         response = self.client.put(
-            f"/api/transactions/{self.transaction.id}/",
+            f"/api/transactions/{self.transaction.slug}/",
             data=json.dumps({
                 "amount": 200,
 
@@ -254,7 +258,7 @@ class TransactionTestCase(APITestCase):
         self.transaction.refresh_from_db()
         self.assertEqual(self.transaction.amount, 200)
 
-        response = self.client.delete(f"/api/transactions/{self.transaction.id}/")
+        response = self.client.delete(f"/api/transactions/{self.transaction.slug}/")
         self.assertEqual(response.status_code, 204)
         self.assertFalse(Transaction.objects.filter(description="Test Transaction").exists())
 
@@ -269,12 +273,11 @@ class TransactionTestCase(APITestCase):
         session['user_id'] = self.admin.id
         session.save()
 
-        response = self.client.get(f"/api/transactions/by-budget/{self.budget.id}/")
+        response = self.client.get(f"/api/transactions/by-budget/{self.budget.slug}/")
         self.assertEqual(response.status_code, 200)
 
         expected_response = [
             {
-                "budget": 1,   
                 "description": "Test Transaction",
                 "amount": "100.00",
                 "category": "expense",
@@ -292,8 +295,10 @@ class TransactionTestCase(APITestCase):
             category="General",
             startDate="2025-01-01",
             endDate="2025-12-31",
+            slug="test-budget2"
         )
+
         self.budget.refresh_from_db()
 
-        response = self.client.get(f"/api/transactions/by-budget/{self.budget.id}/")
+        response = self.client.get(f"/api/transactions/by-budget/{self.budget.slug}/")
         self.assertEqual(response.status_code, 404)
