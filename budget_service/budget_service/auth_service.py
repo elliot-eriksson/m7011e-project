@@ -71,6 +71,8 @@ class AuthService:
                 {'error': valid_token.get('error', 'Unauthorized')},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+        
+        
                
         request.session["user_id"] = valid_token.get("user_id")
         request.session["username"] = valid_token.get("username")

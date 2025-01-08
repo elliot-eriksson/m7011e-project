@@ -90,7 +90,7 @@ cd M7011E-project
 3. Copy the generated API key.
 
 ### 4. Add the API key and the RabbitMQ URL to your `.env` file
-- For the **email_service** microservice:
+- For the **email_service** microservice place the `.env` file in email_service/email_service (where settings are):
     - Add both the SendGrid API key and the RabbitMQ URL to the `.env` file:
     ```env
     ### RABBITMQ
@@ -104,7 +104,7 @@ cd M7011E-project
     SENDGRID_FROM_EMAIL = "your_sendgrid_mail"
     ```
 
-- For all other microservices:
+- For all other microservices, place the `.env` in main folder for the microservices (next to manage.py):
     - Only the RabbitMQ URL is required in the `.env` file:
     ```env
     RABBITMQ_URL=amqps://<username>:<password>@<host>/<vhost>

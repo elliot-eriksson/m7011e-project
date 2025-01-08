@@ -14,7 +14,6 @@ class EmailLogView(viewsets.ModelViewSet):
     queryset = Email.objects.all()
     serializer_class = EmailLogSerializer
 
-    # TODO: Lägg till check så att bara staff kan komma åt denna endpoint
 
     def dispatch(self, request, *args, **kwargs):
         request = AuthService.validate_token(request)

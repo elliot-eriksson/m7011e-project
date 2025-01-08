@@ -13,27 +13,27 @@ class TransactionViewSet(viewsets.ModelViewSet):
     lookup_field= 'slug'
 
     def dispatch(self, request, *args, **kwargs):
-        # print("Dispatching request for token validation.")
         request = AuthService.validate_token(request)
         return super().dispatch(request, *args, **kwargs)
-    
-    def perform_create(self, request, *args, **kwargs):
-    # Always override user from request context
-        # print("Performing create")
-        # print(self.request.session.get('user_id'), self.request.data['budget'])
-        access = BudgetAccess.objects.get(user=self.request.session.get('user_id'), budget=request.data['budget'])
 
+    def create(self, request, *args, **kwargs):
+    # Always override user from request context
+
+        budget = Budget.objects.get(slug=self.kwargs['slug'])
+
+        access = BudgetAccess.objects.get(user=self.request.session.get('user_id'), budget=budget)
         if not access.has_permission('add_transaction'):
             return Response("Unauthorized to add transaction for this budget", status=401)
         
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()
+        data['budget'] = budget.id
+
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=self.request.session.get('user_id'))
-        # print("Transaction created")
+        serializer.save(user=self.request.session.get('user_id'), budget=budget)
         return Response(serializer.data, status=201)
 
     def retrieve(self, request, slug=None):
-        print("Retrieving transaction with slug:", slug)
         transaction = get_object_or_404(Transaction, slug=slug)
         access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id)
         if not access.has_permission('view_transactions'):
@@ -42,17 +42,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-    def listByUser(self, request, user_id=None):
-        # user_id = self.request.user.id
-
-        if user_id != request.session.get('user_id'):
+    def listByUser(self, request, username=None):
+        if username != request.session.get('username'):
             return Response("Unauthorized", status=401)
-        transactions = Transaction.objects.filter(user=user_id)
+        transactions = Transaction.objects.filter(user=request.session.get('user_id'))
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 
     def listByBudget(self, request, slug=None):
-        print("USER",request.session.get('user_id'))
         budget = Budget.objects.get(slug=slug)
         access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=budget)
         if not access.has_permission('view_transactions'):

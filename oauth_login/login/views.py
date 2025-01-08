@@ -248,7 +248,7 @@ class LoginView(APIView):
                 'scope': access_token.scope,
                 'refresh_token': refresh_token.token
             },
-            'user_id': user.id
+            # 'user_id': user.id
         }
         
         return Response(resp_data, status=status.HTTP_200_OK, headers={})
@@ -289,7 +289,7 @@ class VerifyOTPView(APIView):
                     'scope': access_token.scope,
                     'refresh_token': refresh_token.token
                 },
-                'user_id': user.id
+                # 'user_id': user.id
             }
             return Response(resp_data, status=status.HTTP_200_OK, headers={})
             
