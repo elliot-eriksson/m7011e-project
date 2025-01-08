@@ -22,7 +22,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         self.request.user = self.request.session.get('user_id')
-        access_entries = BudgetAccess.objects.filter(user=self.request.user)
+        access_entries = BudgetAccess.objects.filter(user=self.request.user, accepted=True)
         budgets = Budget.objects.filter(id__in=[access.budget.id for access in access_entries])
         return budgets
 
@@ -81,7 +81,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
         instance = self.get_object()
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance, accepted=True)
         if not access.has_permission('delete_budget'):
             return Response({'error': 'You do not have permission to delete this budget.'}, status=status.HTTP_403_FORBIDDEN)
         self.perform_destroy(instance)
@@ -99,13 +99,13 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
         budget = get_object_or_404(Budget, slug=kwargs['slug'])
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget, accepted=True)
         return Response(BudgetAccessSerializer(access).data)
     
     def addBudgetAccess(self, request, slug=None):
         self.request.user = self.request.session.get('user_id')
         budget = get_object_or_404(Budget, slug=slug)
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget, accepted=True)
 
         username = request.data.get('username')
         email = request.data.get('email')
@@ -159,7 +159,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     def listBudgetAccessByBudget(self, request, slug=None):
         request.user = request.session.get('user_id')
         budget = get_object_or_404(Budget, slug=slug)
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget, accepted=True)
         if not access.has_permission('view_budget_access'):
             return Response({'error': 'You do not have permission to view access to this budget.'}, status=status.HTTP_403_FORBIDDEN)
         budgetAccess = BudgetAccess.objects.filter(budget=budget)
@@ -169,7 +169,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         self.request.user = self.request.session.get('user_id')
         instance = self.get_object()
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=instance, accepted=True)
         username = request.data.get('username')
         role = request.data.get('accessLevel')
         if not username or not role:
@@ -209,7 +209,7 @@ class BudgetAccessViewSet(viewsets.ModelViewSet):
     def deleteBudgetAccess(self, request, slug=None, username=None):
         self.request.user = self.request.session.get('user_id')
         budget = get_object_or_404(Budget, slug=slug)
-        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget)
+        access = get_object_or_404(BudgetAccess, user=request.user, budget=budget, accepted=True)
 
         if not access.has_permission('remove_admin') or not access.has_permission('remove_user_access'):
             return Response({'error': 'You do not have permission to delete access to this budget.'}, status=status.HTTP_403_FORBIDDEN)
