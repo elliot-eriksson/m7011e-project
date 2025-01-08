@@ -27,12 +27,13 @@ class BudgetAccessTest(APITestCase):
             category="General",
             startDate="2025-01-01",
             endDate="2025-12-31",
+            slug="testslug123"
         )
 
         # Assign roles
-        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner, accepted=True)
-        BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin, accepted=True)
-        BudgetAccess.objects.create(budget=self.budget, user=self.member.id, accessLevel=BudgetRole.member, accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.owner.id, accessLevel=BudgetRole.owner,slug="ownwerslug", accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.admin.id, accessLevel=BudgetRole.admin,slug="adminslug", accepted=True)
+        BudgetAccess.objects.create(budget=self.budget, user=self.member.id, accessLevel=BudgetRole.member,slug="memberslug", accepted=True)
 
     # Test for path('budget/<int:budget_id>/', views.budget_access_by_budget, name="budget_access_by_budget"), get
     @patch("budget_service.auth_service.AuthService.validate_token")
@@ -132,10 +133,19 @@ class BudgetAccessTest(APITestCase):
         session['user_id'] = self.owner.id
         session.save()
 
+        BudgetAccess.objects.create(
+        budget=self.budget,
+        user=self.owner.id,
+        accessLevel=BudgetRole.owner,
+        slug=self.budget.slug,
+        accepted=True
+    )
+
         response = self.client.get(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             content_type="application/json"
         )
+        print(response.json())
         self.assertEqual(response.status_code, 200)
 
         expected_response = {
@@ -152,7 +162,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.get(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             content_type="application/json"
         )
         self.assertEqual(response.status_code, 404)
@@ -169,11 +179,15 @@ class BudgetAccessTest(APITestCase):
         session['user_id'] = self.owner.id
         session.save()
 
-        BudgetAccess.objects.create(budget=self.budget, user=self.testUser.id, accessLevel=BudgetRole.member, accepted=True)
-
-
+        BudgetAccess.objects.create(
+            budget=self.budget, 
+            user=self.testUser.id, 
+            accessLevel=BudgetRole.member,
+            slug="memeberslug123", 
+            accepted=True
+            )
         response = self.client.put(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             data=json.dumps({
                 "accessLevel": BudgetRole.admin,
                 "username": self.testUser.username
@@ -191,11 +205,10 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         self.testUser2 = User.objects.create_user(username="testUser2", password="test_pass2")
-        BudgetAccess.objects.create(budget=self.budget, user=self.testUser2.id, accessLevel=BudgetRole.member, accepted=True)
-
-
+        BudgetAccess.objects.create(budget=self.budget, user=self.testUser2.id, accessLevel=BudgetRole.member,slug="memeberslug" ,accepted=True)
+        
         response = self.client.put(
-            f"/api/budget-access/{self.budget.id}/",
+            f"/api/budget-access/{self.budget.slug}/",
             data=json.dumps({
                 "accessLevel": BudgetRole.admin,
                 "username": self.testUser.username
@@ -288,7 +301,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             data=json.dumps({
                 "user": "new_user",
                 "email": "new_user@example.com",
@@ -307,7 +320,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             data=json.dumps({
                 "user": "new_admin",
                 "email": "new_admin@example.com",
@@ -324,7 +337,7 @@ class BudgetAccessTest(APITestCase):
         session.save()
 
         response = self.client.post(
-            f"/api/budget-access/budget/{self.budget.id}/",
+            f"/api/budget-access/budget/{self.budget.slug}/",
             data=json.dumps({
                 "user": "new_member",
                 "email": "new_member@exmaple.com",
