@@ -17,6 +17,7 @@ class Transaction(models.Model):
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    slug = models.SlugField(max_length=16, unique=True, null=True, blank=True)
 
     
 

@@ -4,12 +4,13 @@ from rest_framework.response import Response
 from .models import Transaction
 from .serializers import TransactionSerializer
 from budget_service.auth_service import AuthService
-from budget.models import BudgetAccess
+from budget.models import Budget, BudgetAccess
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+    lookup_field= 'slug'
 
     def dispatch(self, request, *args, **kwargs):
         # print("Dispatching request for token validation.")
@@ -31,8 +32,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
         # print("Transaction created")
         return Response(serializer.data, status=201)
 
-    def retrieve(self, request, pk=None):
-        transaction = get_object_or_404(Transaction, pk=pk)
+    def retrieve(self, request, slug=None):
+        print("Retrieving transaction with slug:", slug)
+        transaction = get_object_or_404(Transaction, slug=slug)
         access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id)
         if not access.has_permission('view_transactions'):
             return Response("Unauthorized to view transaction for this budget", status=401)
@@ -49,16 +51,18 @@ class TransactionViewSet(viewsets.ModelViewSet):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 
-    def listByBudget(self, request, budget_id=None):
-        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=budget_id)
+    def listByBudget(self, request, slug=None):
+        print("USER",request.session.get('user_id'))
+        budget = Budget.objects.get(slug=slug)
+        access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=budget)
         if not access.has_permission('view_transactions'):
             return Response("Unauthorized to view transaction for this budget", status=401)
-        transactions = Transaction.objects.filter(budget=budget_id)
+        transactions = Transaction.objects.filter(budget=budget)
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
     
-    def update(self, request, pk=None):
-        transaction = get_object_or_404(Transaction, pk=pk)
+    def update(self, request, slug=None):
+        transaction = get_object_or_404(Transaction, slug=slug)
         access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id)
         if not access.has_permission('edit_transaction'):
             return Response("Unauthorized to edit transaction for this budget", status=401)
@@ -73,12 +77,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=400)
         # return super().update(request, pk)
     
-    def destroy(self, request, pk=None):
-        transaction = get_object_or_404(Transaction, pk=pk)
+    def destroy(self, request, slug=None):
+        transaction = get_object_or_404(Transaction, slug=slug)
         access = get_object_or_404(BudgetAccess, user=request.session.get('user_id'), budget=transaction.budget.id)
         if not access.has_permission('delete_transaction'):
             return Response("Unauthorized to delete transaction for this budget", status=401)
-        return super().destroy(request, pk)
+        return super().destroy(request, slug)
  
                 
 
